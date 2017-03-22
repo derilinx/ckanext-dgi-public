@@ -1,0 +1,21 @@
+﻿{% extends "page.html" %}
+
+{% block title %}Not Authorized - {{ super() }}{% endblock %}
+
+{% block breadcrumb_content %}
+  {{ h.build_nav('dgu_search', _('Datasets')) }}
+  <li><i>Not Authorized</i></li>
+{% endblock %}
+
+{% block primary_content_inner %}
+    <div class="panel panel-danger">
+      <div class="panel-heading">This action is not authorized</div>
+      <div class="panel-body">
+        {% if not c.user %}
+          <p>You may <a href="{{ '/user' if h.is_plugin_enabled('dgu_drupal_auth') else h.url_for(controller='user',action='me') }}?destination={{ request.path[1:] }}">log-in</a> and try again.</p>
+        {% else %}
+          <p>You are logged in as: {{ h.dgu_linked_user(c.user, maxlength=100) }}</p>
+        {% endif %}
+      </div>
+    </div>
+{% endblock %}

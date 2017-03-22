@@ -1,0 +1,22 @@
+{% extends "page.html" %}
+
+{% block title %}Open Spending Report - {{super()}}{% endblock %}
+
+
+{% block breadcrumb_content %}
+  {{ h.build_nav('dgu_search', _('Datasets')) }}
+  {{ h.build_nav('openspending_index', _('Spend Reports'))}}
+  <li><a href="{{request.url}}">Publisher Report</a></li>
+{% endblock %}
+
+{% block primary_content_inner %}
+
+  {{ c.content|safe }}
+
+  <p>Created by:
+      <a href="http://okfn.org">
+        <img alt="Open Knowledge Foundation" src="/images/okf_logo.png" />
+      </a>
+  </p>
+
+{% endblock %}

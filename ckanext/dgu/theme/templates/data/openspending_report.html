@@ -1,0 +1,55 @@
+{% extends "page.html" %}
+
+{% block title %}Open Spending Report{% endblock %}
+
+{% block breadcrumb_content %}
+    <li><a href="/data/search">Datasets</a></li>
+    <li><a href="/data/openspending-report/index">Spend Reports</a></li>
+{% endblock %}
+
+{% block primary_content_inner %}
+    <div class="">
+      {{ c.content|safe }}
+    </div>
+
+          <p>Created by:
+              <a href="http://okfn.org">
+                <img alt="Open Knowledge Foundation" src="/images/okf_logo.png" />
+              </a>
+          </p>
+{% endblock %}
+
+{% block optional_footer  %}
+    <script type="text/javascript" src="/scripts/vendor/jquery.tablesorter.min.js"></script>
+    <script type="text/javascript">
+      //<![CDATA[
+      var myExtract = function(node) {
+          if ('sort' in node.attributes) {
+              return node.attributes['sort'].value;
+          }
+          // remove commas
+          var text;
+          if (node.childNodes[0] && node.childNodes[0].hasChildNodes()) {
+                  text = node.childNodes[0].innerHTML;
+          } else {
+                  text = node.innerHTML;
+          }
+          return text.replace(/,/g, '');
+      }
+      $(document).ready(function()
+        {
+          $("#publishers-table").tablesorter({
+              textExtraction: myExtract,
+              dateFormat: "uk",
+              headers: {
+               2: { sorter: 'digit' },
+               3: { sorter: 'digit' },
+               4: { sorter: 'date' },
+               5: { sorter: 'digit' }
+              }
+          });
+        }
+      );
+    // ]]>
+    </script>
+{% endblock %}

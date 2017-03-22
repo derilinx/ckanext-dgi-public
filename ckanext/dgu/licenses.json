@@ -1,0 +1,69 @@
+[
+  {
+    "domain_content": true,
+    "domain_data": true,
+    "domain_software": false,
+    "family": "",
+    "id": "cc-by",
+    "maintainer": "Creative Commons",
+    "is_osi_compliant": false,
+    "is_okd_compliant": true,
+    "status": "active",
+    "title": "Creative Commons Attribution 4.0",
+    "url": "https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+    "domain_content": true,
+    "domain_data": true,
+    "domain_software": false,
+    "family": "",
+    "id": "psi",
+    "maintainer": "Public Sector Information",
+    "is_osi_compliant": false,
+    "is_okd_compliant": true,
+    "status": "active",
+    "title": "Standard Irish PSI Licence (CC-BY 4.0)",
+    "url": "http://psi.gov.ie/"
+  },
+  {
+    "domain_content": true,
+    "domain_data": false,
+    "domain_software": false,
+    "family": "",
+    "id": "other-at",
+    "is_generic": true,
+    "maintainer": "",
+    "is_osi_compliant": false,
+    "is_okd_compliant": false,
+    "status": "active",
+    "title": "Other (Attribution)",
+    "url": ""
+  },
+  {
+    "domain_content": false,
+    "domain_data": false,
+    "domain_software": false,
+    "family": "",
+    "id": "other",
+    "is_generic": true,
+    "maintainer": "",
+    "is_osi_compliant": false,
+    "is_okd_compliant": false,
+    "status": "active",
+    "title": "Other (Not Open)",
+    "url": ""
+  },
+  {
+    "domain_content": true,
+    "domain_data": true,
+    "domain_software": false,
+    "family": "",
+    "id": "cc-by-sa",
+    "maintainer": "Creative Commons",
+    "is_osi_compliant": false,
+    "is_okd_compliant": true,
+    "status": "active",
+    "title": "Creative Commons Attribution Share-Alike 4.0",
+    "url": "https://creativecommons.org/licenses/by-sa/4.0/"
+  }
+]

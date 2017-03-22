@@ -1,0 +1,850 @@
+﻿{% import "/_dgu_jinja_util.html" as m with context %}
+
+<form id="package-edit" method="post"
+  {% if errors %}class="has-errors package_create_form ckan"{% else%}class="package_create_form ckan"{% endif%}
+  role="form">
+
+
+  {% if errors %}
+  <div class="panel panel-danger error-explanation">
+    <div class="panel-heading"><strong>Errors in form</strong></div>
+    <div class="panel-body">
+      The form contains invalid entries:
+      {{ m.dump(errors) }}
+    </div>
+  </div>
+  {% endif %}
+
+<div id="form-tabs" class="tabbable tabs-left">
+  <div class="row">
+    <div class="col-lg-3 col-sm-4">
+      <ul class="nav nav-pills nav-stacked" >
+        {% with %}
+        {% set boilerplate=h.use_wizard(data, errors) %}
+        {% set classes = 'disabled' if h.use_wizard(data, errors) else '' %}
+
+        <li class="active"><a data-toggle="tab" data-hash="tab-name" id="section-name" href="#section-name-fields">Name</a></li>
+        <li><a data-toggle="tab" class="{{classes}}" data-hash="tab-data" id="section-data" {% if boilerplace %}disabled="disabled"{% endif %} href="#section-data-field">Data Files</a></li>
+        <li><a data-toggle="tab" class="{{classes}}" data-hash="tab-description" id="section-description" {% if boilerplace %}disabled="disabled"{% endif %} href="#section-description-field">Description</a></li>
+        <li><a data-toggle="tab" class="{{classes}}" data-hash="tab-licence" id="section-licence" {% if boilerplace %}disabled="disabled"{% endif %} href="#section-licence-field">Licence</a></li>
+        <li><a data-toggle="tab" class="{{classes}}" data-hash="tab-publisher" id="section-publisher" {% if boilerplace %}disabled="disabled"{% endif %} href="#section-publisher-field">Publisher</a></li>
+        <li><a data-toggle="tab" class="{{classes}}" data-hash="tab-themes" id="section-themes" {% if boilerplace %}disabled="disabled"{% endif %} href="#section-themes-field">Theme &amp; Keywords</a></li>
+        <!--         <li><a data-toggle="tab" class="{{classes}}" data-hash="tab-additional_resources" id="section-additional_resources" {% if boilerplace %}disabled="disabled"{% endif %} href="#section-additional_resources-field">Additional resources</a></li> -->
+        <li><a data-toggle="tab" class="{{classes}}" data-hash="tab-temporal" id="section-temporal" {% if boilerplace %}disabled="disabled"{% endif %} href="#section-temporal-field">Time &amp; Date</a></li>
+        <li><a data-toggle="tab" class="{{classes}}" data-hash="tab-geographic" id="section-geographic" {% if boilerplace %}disabled="disabled"{% endif %} href="#section-geographic-field">Geographic Coverage</a></li>
+        <li><a data-toggle="tab" class="{{classes}}" data-hash="tab-api" id="section-api-linked-data" {% if boilerplace %}disabled="disabled"{% endif %} href="#section-api-linked-data-field">API & Linked Data</a></li>
+        {% endwith %}
+      </ul>
+    </div>
+    <div class="col-lg-9 col-sm-8">
+
+  <div class="tab-content">
+<fieldset class="tab-pane boxed whitebox fade active in" id="section-name-fields">
+  <p>Please name your data record.</p>
+  <div class="form-group">
+    <label for="title" class="js-tooltip tooltip-paragraph" data-placement="right" title="The main subject of the data should be clear. For cross-government data requirements, such as spend data, specify the public body the data belongs to or its geographical coverage, in order to distinguish your data from other similar datasets in data.gov.ie. If the data relates to a period of time, include that in the name, although this would not be appropriate for data which is updated over time. This field is not a full description - save that for the Description field. Do not put a trailing full stop.">
+      Name <i class="icon-info-sign"></i>
+    </label>
+    <input class="form-control field_req js-title input-xlarge" id="title" name="title" type="text" value="{{data.get('title', '')}}"/>
+  </div>
+  {{ m.display_error(errors, 'title') }}
+
+  <input id="extras__100__key" name="extras__100__key" type="hidden" value="unpublished" />
+  <input id="extras__100__value" name="extras__100__value" type="hidden" value="false" />
+  {% if c.pkg %}
+    <input id="extras__101__key" name="extras__101__key" type="hidden" value="core-dataset" />
+    <input id="extras__101__value" name="extras__101__value" type="hidden" value="{{c.pkg.extras.get('core-dataset',False)}}" />
+  {% endif %}
+  {% if 'odi-certificate' in c.pkg.extras %}
+    <input id="extras__102__key" name="extras__102__key" type="hidden" value="odi-certificate" />
+    <input id="extras__102__value" name="extras__102__value" type="hidden" value="{{c.pkg.extras['odi-certificate']}}" />
+  {% endif %}
+
+  <div class="form-group">
+    <label for="name">
+        <!--       <span class="js-tooltip" data-placement="right" title="A public unique identifier for the dataset.  It should be roughly readable, with dashes separating words.  Format: Two or more lowercase alphanumeric, dash (-) or underscore (_) characters. e.g. uk-road-traffic-statistics-2008 or local-authority-spend-over-500-harlow"> -->
+        The URI for this dataset will be: <i class="icon-info-sign"></i>
+      </span>
+      &nbsp;&nbsp;
+      {% if not h.is_package_edit_form(data) %}<span style="font-style: italic;" class="js-url-is-valid">&nbsp;</span>{% endif %}
+    </label>
+    <div class="input-group">
+        <!--       <span class="input-group-addon">/dataset/</span><input {% if h.is_package_edit_form(data) %}readonly="readonly"{% endif %} class="field_req js-url-input form-control" id="name" maxlength="100" name="name" type="text" value="{{data.get('name', '')}}"/> -->
+      <span class="input-group-addon">data.gov.ie/dataset/</span><input readonly="readonly" class="field_req js-url-input form-control" id="name" maxlength="100" name="name" type="text" value="{{data.get('name', '')}}"/>
+    </div>
+  </div>
+  {{ m.display_error(errors, 'name') }}
+</fieldset>
+
+<fieldset class="tab-pane boxed whitebox fade" id="section-data-field">
+  <h3>Data Files</h3>
+  <p>In this tab you enter the links to the files containing the actual data at the heart of this record.</p>
+
+  <p>Your record may be creating a single file record (a record which points to just one file) or you may be creating a timeseries record (where multiple files are released over time, for example where a new data file is added to the record monthly).</p>
+  <p>If your data comes in multiple formats, use a line for each.</p>
+  <!-- <p><strong>NB: Do not put links to web pages here.</strong> These and other useful documents that are not actually the data should go in the 'Additional Resources' section.</p> -->
+  <hr/>
+  <p>This record is:</p>
+
+  <div class="radio">
+    <label>
+      <input {% if not h.are_timeseries_resources(data) %}checked="checked"{% endif %} id="package_type-individual-radio" type="radio" name="package_type" value="individual"/>
+      A single file record
+    </label>
+  </div>
+  <div class="radio">
+    <label>
+      <input {% if  h.are_timeseries_resources(data) %}checked="checked"{% endif %} id="package_type-timeseries-radio" type="radio" name="package_type" value="timeseries"/>
+      A timeseries record
+    </label>
+  </div>
+
+    <!-- The resource fieldset for a timeseries dataset -->
+    <fieldset id="package_type-timeseries">
+
+      <table class="flexitable table table-bordered table-condensed table-striped" id="timeseries_resources-table">
+      <thead>
+        <tr>
+          <th class="resource-move-cell"></th>
+          <th class="resource-date">  <div class="js-tooltip" title="Format: DD/MM/YYYY">Date: <i class="icon-info-sign"></i></div></th>
+          <th class="resource-name">  <div class="js-tooltip" title="Text that is displayed next to the link on the dataset record">File Title: <i class="icon-info-sign"></i></div></th>
+          <th class="resource-url">   <div class="js-tooltip" title="Where the file is already hosted">URL: <i class="icon-info-sign"></i></div></th>
+          <th class="resource-format"><div class="js-tooltip" title="The file format of the linked resource">Format: <i class="icon-info-sign"></i></div></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for num, res in h.list_enumerate(data.get('timeseries_resources', []) + [{}]) %}
+        <tr class="timeseries_resources__{{num}} resource">
+          <td class="resource-move-cell">
+            <div class="btn-group">
+              <button class="btn btn-xs btn-default resource-move resource-move-up"><i class="icon-arrow-up"></i></button>
+              <button class="btn btn-xs btn-default resource-move resource-move-down"><i class="icon-arrow-down"></i></button>
+            </div>
+            <div class="hidden-resource-fields">
+              <!--! Because the resource fields are explicitly set in c.resource_columns, we need
+                    to pull the others from the resource keys, strip the resource_columns and then
+                    ignore resource_type, id and resource_group_id.
+
+                    Code is long hand to keep the list comp understandable -->
+              {% for col in h.timeseries_extra_fields(res) %}
+                <input
+                       id="timeseries_resources__{{num}}__{{col}}"
+                       name="timeseries_resources__{{num}}__{{col}}"
+                       type="hidden"
+                       value="{{res.get(col, '')}}"/>
+              {% endfor %}
+              <span class="resource-id"><input name="timeseries_resources__{{num}}__id" type="hidden" value="{{res.get('id', '')}}" /></span>
+              <span class="resource-type"><input name="timeseries_resources__{{num}}__resource_type" type="hidden" value="{{res.get('resource_type', '')}}" /></span>
+            </div>
+          </td>
+          {% for col in ('date',) + c.resource_columns %}
+            <td class="resource-{{col}}">
+                {% if col=='description' %}
+                  <input id="timeseries_resources__{{num}}__{{col}}"
+                         name="timeseries_resources__{{num}}__{{col}}"
+                         type="text"
+                         value="{{res.get(col, '')}}"
+                         class="form-control {% if h.cell_has_errors(errors,'timeseries_resources', num, col) %}field_error{% endif %}" />
+                {% elif col=='url' %}
+                  <span class="input-group {% if h.cell_has_errors(errors,'timeseries_resources', num, col) %}error{% endif %}">
+                    <input id="timeseries_resources__{{num}}__{{col}}"
+                           name="timeseries_resources__{{num}}__{{col}}"
+                           type="text"
+                           value="{{res.get(col, '')}}"
+                           class="form-control"/>
+                    <span class="input-group-btn">
+                      <button id="timeseries_resources__{{num}}__validate-resource-button"
+                          class="validate-resource-button btn btn-default">Check</button>
+                    </span>
+                  </span>
+                {% elif col=='date' %}
+                  <input
+                       id="timeseries_resources__{{num}}__{{col}}"
+                       name="timeseries_resources__{{num}}__{{col}}"
+                       type="text"
+                       value="{{res.get(col, '')}}"
+                       class="form-control needs-datepicker {% if h.cell_has_errors(errors,'timeseries_resources', num, col) %}field_error{% endif %}"
+                   />
+                {% else %}
+                  <input id="timeseries_resources__{{num}}__{{col}}"
+                         name="timeseries_resources__{{num}}__{{col}}"
+                         type="text"
+                         value="{{res.get(col, '')}}"
+                         class="form-control {% if h.cell_has_errors(errors,'timeseries_resources', num, col) %}field_error{% endif %}"
+                   />
+                {% endif %}
+            </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+      </table>
+      <a href="javascript:;" id="timeseries_resources-add" class="btn btn-primary pull-right add-button"><i class="icon-plus"></i> &nbsp;Add Row</a>
+
+      {{ m.display_error(errors, 'timeseries_resources', True, 'Row(s) partially filled.') }}
+
+      <button class="validate-resources-button btn btn-default" id="validate-timeseries-button">Check all URLs</button>
+      <span class="checking-links-label" style="display: none;">Checking, please wait...</span><br/>
+    </fieldset>
+
+
+    <!-- The resource fieldset for an individual dataset -->
+    <fieldset id="package_type-individual">
+
+      <table class="table table-bordered table-condensed table-striped" id="individual_resources-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th class="resource-name"><div class="js-tooltip" title="Text that is displayed next to the link on the dataset record">File Title: <i class="icon-info-sign"></i></div></th>
+          <th class="resource-url"> <div class="js-tooltip" title="Where the file is already hosted">URL: <i class="icon-info-sign"></i></div></th>
+          <th class="resource-url"> <div class="js-tooltip" title="The file format of the linked resource">Format: <i class="icon-info-sign"></i></div></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for num, res in h.list_enumerate(data.get('individual_resources', []) + [{}]) %}
+        <tr class="individual_resources__{{num}} resource">
+          <td class="resource-move-cell">
+            <div class="btn-group">
+              <button class="btn btn-xs btn-default resource-move resource-move-up"><i class="icon-arrow-up"></i></button>
+              <button class="btn btn-xs btn-default resource-move resource-move-down"><i class="icon-arrow-down"></i></button>
+            </div>
+            <div class="hidden-resource-fields">
+              <!--! Because the resource fields are explicitly set in c.resource_columns, we need
+                    to pull the others from the resource keys, strip the resource_columns and then
+                    ignore resource_type, id and resource_group_id.
+
+                    Code is long hand to keep the list comp understandable -->
+              {% for col in h.resource_extra_fields(res) %}
+                <input
+                       id="individual_resources__{{num}}__{{col}}"
+                       name="individual_resources__{{num}}__{{col}}"
+                       type="hidden"
+                       value="{{res.get(col, '')}}"/>
+              {% endfor %}
+              <span class="resource-id"><input name="individual_resources__{{num}}__id" type="hidden" value="{{res.get('id', '')}}" /></span>
+              <span class="resource-type"><input name="individual_resources__{{num}}__resource_type" type="hidden" value="{{res.get('resource_type', '')}}" /></span>
+            </div>
+          </td>
+          {% for col in c.resource_columns %}
+            <td class="resource-{{col}}">
+            {% if col=='description' %}
+              <input
+                     id="individual_resources__{{num}}__{{col}}"
+                     name="individual_resources__{{num}}__{{col}}"
+                     type="text"
+                     value="{{res.get(col, '')}}"
+                     class="form-control {% if h.cell_has_errors(errors,'individual_resources', num, col) %}field_error{% endif %}"
+                     />
+            {% elif col=='url' %}
+              <span class="input-group {% if h.cell_has_errors(errors,'individual_resources', num, col) %}error{% endif %}">
+                <input id="individual_resources__{{num}}__{{col}}"
+                       name="individual_resources__{{num}}__{{col}}"
+                       type="text"
+                       value="{{res.get(col, '')}}"
+                       class="form-control"/>
+                <span class="input-group-btn">
+                  <button id="individual_resources__{{num}}__validate-resource-button"
+                      class="validate-resource-button btn btn-default">Check</button>
+                </span>
+              </span>
+              {% elif col=='format'%}
+              <input
+                     id="individual_resources__{{num}}__{{col}}"
+                     name="individual_resources__{{num}}__{{col}}"
+                     type="text"
+                     value="{{res.get(col, '')}}"
+                     data-provider="typeahead"
+                     data-items="8"
+                     class="form-control format-typeahead {% if h.cell_has_errors(errors,'additional_resources', num, col) %}field_error{% endif %}"
+                     />
+              {% else %}
+              <input
+                     id="individual_resources__{{num}}__{{col}}"
+                     name="individual_resources__{{num}}__{{col}}"
+                     type="text"
+                     value="{{res.get(col, '')}}"
+                     class="input-small {% if h.cell_has_errors(errors,'individual_resources', num, col) %}field_error{% endif %}"
+                     />
+            {% endif %}
+            </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+      </table>
+      <a href="javascript:;" id="individual_resources-add" class="btn btn-primary pull-right add-button"><i class="icon-plus"></i> &nbsp;Add Row</a>
+
+      {{ m.display_error(errors, 'individual_resources', True, 'Row(s) partially filled.') }}
+      <button class="btn-default validate-resources-button btn" id="validate-timeseries-button">Check all URLs...</button>
+      <span class="checking-links-label" style="display: none;">Checking, please wait...</span><br/>
+    </fieldset>
+
+</fieldset>
+
+<fieldset class="tab-pane boxed whitebox fade" id="section-description-field">
+  <h3>Description</h3>
+  <p class="instructions basic">Please add a description of the data set.  What does the data contain/show?  Why was it produced?</p>
+  <textarea class="form-control field_req" cols="260" id="notes" name="notes" rows="10">{{data.get('notes', '')}}</textarea>
+  <p class="instructions further instruction-needed">(It is often displayed with the package title. In particular, it should start with a short sentence that describes the data set succinctly, because the first few words alone may be used in some views of the data sets. Here is the place to state if there are any limitations or deficiencies to the data in order to enable users to evaluate the information; even incomplete data may be adequate for some users).</p>
+  {{ m.display_error(errors, 'notes', True) }}
+  <hr/>
+
+  <div class="control-group">
+    <label class="control-label" for="url">Landing Page</label>
+    <div class="controls">
+      <input id="url" name="url" class="form-control" type="text" value="{{data.get('url', '')}}"/>
+      <p class="instructions basic">Website URL where the data is available</p>
+      {{ m.display_error(errors, 'url', True) }}
+    </div>
+  </div>
+  <hr/>
+
+   <div class="control-group">
+    <label class="control-label" for="conforms-to">Conforms To</label>
+    <div class="controls">
+      <input id="conforms-to" class="form-control" name="conforms-to" size="40" type="text" value="{{data.get('conforms-to', '')}}"/>
+      <p class="instructions basic">Data standard(s) that the data conforms to, e.g. INSPIRE</p>
+      {{ m.display_error(errors, 'conforms-to', True) }}
+    </div>
+  </div>
+  <hr/>
+
+  <div class="control-group">
+    <label class="control-label" for="language">Language</label>
+    <div class="controls">
+
+        {% set lang=data.get('language') %}
+
+        <select id="language" name="language" class="form-control">
+            <option value="en" {%if (lang=="en" or lang==None) %} selected="selected" {% endif %}>English (en)</option>
+            <option value="ga">Gaeilge (ga)</option>
+        </select>
+        {{ m.display_error(errors, 'language', True) }}
+    </div>
+  </div>
+</fieldset>
+
+<fieldset class="tab-pane boxed whitebox fade form-inline" id="section-licence-field">
+  <h3>Licence</h3>
+    <div class="form-group">
+    <label for="license_id">Licence:</label>
+    <select id="license_id" class="form-control" name="license_id">
+
+      <!--! An explanation of what's going on here...
+           There are a few cases to handle here:
+
+            1. An new/edit form with a license_id:  the options available to the
+               user are an OGL license; a free-text non-OGL license; and the
+               dataset's current license (edit form only).
+
+            2. An edit form with a license in the extra fields: this is a
+               harvested dataset.
+
+            * license_extra implies an edition form with a license in the
+              extra fields.  ie - a harvested license.
+     -->
+      {% for license_id, license_desc in h.license_choices(data) %}
+        <option value="{{license_id}}" {% if data.get('license_id', 'cc-by') == license_id %}selected="selected"{% endif %}>{{license_desc}}</option>
+      {% endfor %}
+
+      {% if h.get_license_extra(c.pkg) %}
+        <option value="__extra__" selected="selected">Harvested license...</option>
+      {% endif %}
+    </select>
+  </div>
+  <p class="instructions basic">The licence under which the dataset is released.</p>
+  <p class="instructions basic" style="margin-top: 20px">Note. Circular 12/2016: Licence for Re-Use of Public Sector Information adopts CC-BY as the standard PSI licence, and notes that the open standard licence identified in this Circular supersedes PSI General Licence No:2005/08/01 (<a href="https://data.gov.ie/psi">more info</a>)</p>
+  <br/>
+    <div class="form-group choose-other-licence">
+      <label for="license_other">Licence (other):</label>
+      <input class="form-control" class="form-control" id="license_other" name="license_other" type="text" value="{{c.pkg.extras.get('license_other', '') if c.pkg.extras}}">
+    </div>
+    {{ m.display_error(errors, 'license_id', True) }}
+</fieldset>
+
+<fieldset class="tab-pane boxed whitebox fade" id="section-publisher-field">
+  <h3>Publisher</h3>
+    <div class="form-group">
+      <label for="owner_org">Published by: </label>
+      <!--! data['owner_org'] is a group.id. Either it is the existing value in the database, or the value from this form that was submitted invalid, or from the owner_org={id} URL parameter. -->
+      {% set owner_org=data.get('owner_org') %}
+      <select class="form-control" id="owner_org" name="owner_org">
+          
+          <option value=" " {% if not owner_org %}selected="selected"{% endif %} >Please select a publisher...</option>
+          <!--! NB Value is " " to ensure that validation fails if this is selected, due to it checking 'name' is not_empty. In addition, in logic/auth/create.py this particular value is authorized, so when you submit the form with this value, rather that say 'not authorized', it carries on to validation where it fails and shows the user a better error. -->
+          {% for publisher_name, publisher in h.sorted_list(c.publishers.items()) %}
+          <option value="{{publisher.name}}" {% if owner_org == publisher.name %}selected="selected"{% endif %} >
+              {{publisher['title']}}
+          </option>
+          {% endfor %}
+      </select>
+    </div>
+      {{ m.display_error(errors, 'owner_org', True, 'Please select a publisher') }}
+    <hr/>
+  <h3>Contact details</h3>
+  <p>Here are the contact details that will be displayed for this dataset.  The default contact is taken from the selected publisher, but you may edit it for this dataset.</p>
+     {% set group=h.edit_publisher_group(data) %}
+      <fieldset id="publisher-information-field" class="well" >
+        <h3>Publisher Contact Details</h3>
+        <p><b>Name: </b> <span id="contact-name-label">{{data.get('contact-name', '')}}</span></p>
+        <p><b>Email: </b><span id="contact-email-label">{{data.get('contact-email', '')}}</span></p>
+        <p><b>Phone: </b><span id="contact-phone-label">{{data.get('contact-phone', '')}}</span></p>
+
+        <input id="contact-name" name="contact-name" type="hidden" value="{{data.get('contact-name', '')}}"/>
+        <input id="contact-email" name="contact-email" type="hidden" value="{{data.get('contact-email', '')}}"/>
+        <input id="contact-phone" name="contact-phone" type="hidden" value="{{data.get('contact-phone', '')}}"/>
+
+        <a class="btn btn-primary" data-toggle="modal" href="#edit-contact">Edit</a>
+        <div style="display: none;" class="modal dgu-editor" id="edit-contact">
+          <div class="modal-dialog">
+          <div class="modal-content">
+          <div class="modal-header">
+            <a class="close" data-dismiss="modal">x</a>
+            <!--button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button-->
+            <h4 class="modal-title">Edit Contact Information</h4>
+          </div>
+          <div class="modal-body">
+            <p>Edit any of the contact details below.</p>
+            <div class="form-group">
+              <label class="control-label" for="contact-name-editor">Name:</label>
+              <input class="form-control" type="text" name="contact-name-dialog"  data-label="#contact-name-label"  data-input="#contact-name" value="{{data.get('contact-name', '')}}" />
+            </div>
+            <div class="form-group">
+              <label class="control-label" for="contact-email-editor">Email:</label>
+              <input class="form-control" type="text" name="contact-email-dialog" data-label="#contact-email-label" data-input="#contact-email" value="{{data.get('contact-email', '')}}" />
+            </div>
+            <div class="form-group">
+              <label class="control-label" for="contact-phone-editor">Phone:</label>
+              <input class="form-control" type="text" name="contact-phone-dialog" data-label="#contact-phone-label" data-input="#contact-phone" value="{{data.get('contact-phone', '')}}" />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <a href="#" data-dismiss="modal" class="dgu-editor-save btn btn-primary">Save Changes</a>
+            <a href="#" data-dismiss="modal" class="btn btn-black-text">Close</a>
+          </div>
+          </div>
+          </div>
+        </div>
+      </fieldset>
+
+</fieldset>
+
+<fieldset class="tab-pane boxed whitebox fade" id="section-themes-field">
+    <div style="width: 45%; float: left; margin-right: 4%;">
+    <h3 style="font-weight: bold;">Primary Theme</h3>
+    <p>1. Please choose a primary theme which this data record falls under from the options below.</p>
+        {{m.primary_theme_input(data, errors)}}
+    </div>
+    <div class="clearfix">&nbsp;</div>
+
+    <hr/>
+    <h3>Keywords</h3>
+    <p>Please list keywords which describe the subject of this data in commonly used terms abstract terms e.g. "air quality, pollution, roads". Put commas between each tag.</p>
+    <div class="form-group">
+      <input class="form-control long autocomplete-tag" data-tagcomplete-queryparam="incomplete"
+           data-tagcomplete-url="/api/2/util/tag/autocomplete"
+           id="tag_string" name="tag_string" size="60" type="text"
+           value="{{data.get('tag_string') or ', '.join(h.free_tags(data))}}" />
+    </div>
+</fieldset>
+
+<fieldset class="tab-pane boxed whitebox fade" id="section-additional_resources-field">
+  <h3>Additional resources</h3>
+  <p>You can add links to additional resources here.  Use a link for each resource.  This could be PDFs of files explaining the data or links to a website with more information.</p>
+  <table class="table table-bordered table-striped table-condensed flexitable" id="additional_resources-table">
+    <thead>
+      <tr>
+        <th></th>
+        <th class="resource-name">Description:</th>
+        <th class="resource-url"><div class="js-tooltip" title="This is the Internet link directly to the data - by selecting this link in a web browser, the user will immediately download the full data set. Note that datasets are not hosted by data.gov.ie, but by the responsible department.">Link: <i class="icon-info-sign"></i></div></th>
+        <th class="resource-url"><div class="js-tooltip" title="The file format of the linked resource">Format: <i class="icon-info-sign"></i></div></th>
+        <th class="resource-url"><div class="js-tooltip" title="Name of ScraperWiki scraper to create resources from the webpage this resource describes. Only available when Format is 'HTML'.">Scraper name: <i class="icon-info-sign"></i></div></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for num, res in h.list_enumerate(data.get('additional_resources', []) + [{}]) %}
+        <tr class="additional_resources__{{num}} resource">
+          <td class="resource-move-cell">
+            <div class="btn-group">
+              <button class="btn btn-xs btn-default resource-move resource-move-up"><i class="icon-arrow-up"></i></button>
+              <button class="btn btn-xs btn-default resource-move resource-move-down"><i class="icon-arrow-down"></i></button>
+            </div>
+            <div class="hidden-resource-fields">
+              <!--! Because the resource fields are explicitly set in c.resource_columns, we need
+                    to pull the others from the resource keys, strip the resource_columns and then
+                    ignore resource_type, id and resource_group_id.
+
+                    Code is long hand to keep the list comp understandable -->
+              {% for col in h.additional_extra_fields(res) %}
+                <input
+                       id="additional_resources__{{num}}__{{col}}"
+                       name="additional_resources__{{num}}__{{col}}"
+                       type="hidden"
+                       value="{{res.get(col, '')}}"/>
+              {% endfor %}
+              <input name="additional_resources__{{num}}__resource_type" type="hidden" value="{{res.get('resource_type','documentation')}}"/>
+              {% if res.get('id','') %}
+              <input  name="additional_resources__{{num}}__id" type="hidden" value="{{res.get('id','')}}"/>
+              {% endif %}
+            </div>
+          </td>
+
+
+          {% macro apply_error_class(field,error_class) %}
+                {% if h.cell_has_errors(errors,'additional_resources', num, field) %}{{error_class}}{% endif %}
+          {% endmacro %}
+          <td>
+              <input id="additional_resources__{{num}}__description"
+                     name="additional_resources__{{num}}__description"
+                     type="text"
+                     value="{{res.get('description', '')}}"
+                     class="form-control {{apply_error_class('description','field_error')}}" />
+          </td>
+          <td>
+            <span class="input-group {{apply_error_class('url','error')}}">
+              <input id="additional_resources__{{num}}__url"
+                     name="additional_resources__{{num}}__url"
+                     type="text"
+                     value="{{res.get('url', '')}}"
+                     class="form-control"/>
+              <span class="input-group-btn">
+                <button id="additional_resources__{{num}}__validate-resource-button"
+                        class="validate-resource-button btn btn-default">Check</button>
+              </span>
+            </span>
+          </td>
+          <td>
+            <input id="additional_resources__{{num}}__format"
+                   name="additional_resources__{{num}}__format"
+                   type="text"
+                   value="{{res.get('format', '')}}"
+                   class="input_additional_resources_format form-control {{apply_error_class('format', 'field_error')}}" />
+          </td>
+          <td>
+              <input id="additional_resources__{{num}}__scraper_url"
+                       name="additional_resources__{{num}}__scraper_url"
+                       type="text"
+                       value="{{res.get('scraper_url', '')}}"
+                       class="input_additional_resources_scraper form-control"
+                       disabled="disabled" />
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+    </table>
+    <a href="javascript:;" id="additional_resources-add" class="btn btn-primary pull-right add-button"><i class="icon-plus"></i> &nbsp;Add Row</a>
+    {{ m.display_error(errors, 'additional_resources', True, 'Row(s) partially filled.') }}
+    <button  class="validate-resources-button btn btn-default" id="validate-timeseries-button">Check all URLs</button>
+    <span class="checking-links-label" style="display: none;">Checking, please wait...</span>
+    <hr/>
+
+    <div class="well form-inline">
+      <h3>Mandate</h3>
+      <div class="form-group">
+        <input class="form-control" id="mandate" name="mandate" size="40" type="text" value="{{data.get('mandate', '')}}"/>
+      </div>
+      <p class="instructions basic">An Internet link to the enabling legislation that serves as the mandate for the collection or creation of this data, if appropriate.</p>
+      <p class="hints">For example Public Record Act s.2 would be: <a href="http://www.legislation.gov.ie/id/ukpga/Eliz2/6-7/51/section/2">http://www.legislation.gov.ie/id/ukpga/Eliz2/6-7/51/section/2</a></p>
+      <p class="instructions further">This should be taken from The National Archives' Legislation website, and where possible be a link directly to the relevant section of the Act.</p>
+    </div>
+
+</fieldset>
+
+<fieldset class="tab-pane boxed whitebox fade" id="section-temporal-field">
+  <h3>Time &amp; Date</h3>
+      <div class="well">
+  <div class="control-group">
+
+        <label for="update_frequency" class="js-tooltip" title="How frequently new data files are published.  For one-off data, use 'never'. For those once updated but now discontinued, use 'discontinued'.">
+          Update frequency <i class="icon-info-sign"></i>
+        </label>
+        <select class="form-control" id="update_frequency" name="update_frequency">
+            {% for freq_name, freq_desc in c.update_frequency %}
+              <option value="{{freq_name}}" {% if data.get('update_frequency', '') == freq_name %}selected="selected"{% endif %} >
+                {{freq_desc}}
+              </option>
+            {% endfor %}
+            {% if h.is_package_edit_form(data) %}
+            <option value="discontinued" {% if data.get('update_frequency', '') == 'discontinued' %}selected="selected"{% endif %} >discontinued</option>
+            {% endif %}
+        </select>
+        <!-- <label style="margin-left: 20px;" class="" for="update_frequency-other">Other:</label> -->
+        <!-- <input class="form-control" style="width: 200px;" id="update_frequency-other" name="update_frequency-other" type="text" value="{{data.get('update_frequency-other', '')}}"/> -->
+      {{ m.display_error(errors, 'update_frequency') }}
+      </div>
+  </div>
+
+  <div class="well">
+
+  <div class="control-group">
+    <label class="control-label" for="date_released">Date released</label>
+    <div class="controls">
+      <input id="date_released" class="form-control" name="date_released" size="40" type="text" value="{{h.get_date_released(data)}}" />
+      <p class="hints">Format: DD/MM/YYYY</p>
+      <p class="instructions further">This is probably not the date that it is uploaded to data.gov.ie. Be careful not to confuse a new 'version' of some data with a new dataset covering another time period or geographic area.</p>
+      {{ m.display_error(errors, 'date_released', True) }}
+    </div>
+  </div>
+
+  <div class="control-group">
+    <label class="control-label" for="date_updated">Date updated</label>
+    <div class="controls">
+      <input id="date_updated" class="form-control"  name="date_updated" size="40" type="text" value="{{data.get('date_updated', '')}}"/>
+      <p class="hints">Format: DD/MM/YYYY</p>
+      <p class="instructions further">This is not necessarily the date when it was updated on data.gov.ie. As with 'Date released', this is for updates to a particular dataset, such as corrections or refinements, not for that of a new time period.</p>
+      {{ m.display_error(errors, 'date_updated', True) }}
+    </div>
+  </div>
+  </div>
+
+  <div class="well">
+  <label for="temporal_coverage">Temporal coverage</label>
+  <div class="form-inline">
+    <div class="form-group">
+      <input style="width:300px;" class="form-control" id="temporal_coverage-from" name="temporal_coverage-from" type="text" value="{{data.get('temporal_coverage-from', '')}}" /> -
+      <input style="width:300px;" class="form-control" id="temporal_coverage-to" name="temporal_coverage-to" type="text" value="{{data.get('temporal_coverage-to', '')}}" />
+    </div>
+  </div>
+
+  {{ m.display_error(errors, 'temporal_coverage-from', True) }}
+  {{ m.display_error(errors, 'temporal_coverage-to', True) }}
+  <p class="hints">e.g. 21/03/2007 - 03/10/2009 or 07:45 31/03/2006</p>
+  <p class="instructions further">If available, please indicate the time as well as the date. Where data covers only a single day, the second box can be left blank.</p>
+
+  <div class="control-group">
+    <label class="control-label" for="temporal_coverage-other">Temporal Notes</label>
+    <div class="controls">
+      <input id="temporal_coverage-other" class="form-control" name="temporal_coverage-other" size="40" type="text" value="{{data.get('temporal_coverage-other', '')}}" />
+    </div>
+  </div>
+  </div>
+
+  {% if data.get('date_update_future', '') %}
+  <div class="control-group">
+    <label class="control-label" for="date_update_future">Date to be published</label>
+    <div class="controls">
+      <input id="date_update_future" class="form-control" name="date_update_future" size="40" type="text" value="{{data.get('date_update_future', '')}}"/>
+      <p class="hints">Format: DD/MM/YYYY</p>
+      {{ m.display_error(errors, 'date_update_future', True) }}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if data.get('temporal_granularity', '') %}
+  <div class="control-group">
+    <label class="control-label" for="temporal_granularity">Temporal granularity</label>
+    <div class="controls">
+      <div class="form-inline">
+        <select id="temporal_granularity" name="temporal_granularity">
+          {% for  temporal_name, temporal_desc in c.temporal_granularity %}
+
+          <option value="{{temporal_name}}" {% if data.get('temporal_granularity', '') == temporal_name %} selected="selected" {% endif %} >
+            {{temporal_name}}
+          </option>
+          {% endfor %}
+        </select>
+        <label class="inline" for="temporal_granularity-other">Other:</label>
+        <input class="input-medium" class="form-control"  id="temporal_granularity-other" name="temporal_granularity-other" type="text" value="{{data.get('temporal_granularity-other', '')}}"/>
+      </div>
+      <p class="instructions further">This should give the lowest level of temporal detail given in the dataset if it is aggregated, expressed as an interval of time. If the data is not aggregated over time, and so the dataset goes down to the instants that reported events occurred (such as the timings of high and low tides), use 'point'. If none of the choices is appropriate or the granularity varies, please specify in the 'other' element.</p>
+    </div>
+  </div>
+  {% endif %}
+
+</fieldset>
+
+<fieldset class="tab-pane boxed whitebox fade" id="section-geographic-field">
+  <h3>Geographic Coverage</h3>
+
+  <div class="control-group">
+    <label class="control-label" for="bbox-north">Bounding Box North</label>
+    <div class="controls">
+      <input id="bbox-north" class="form-control" name="bbox-north" size="20" type="text" value="{{data.get('bbox-north', '')}}" />
+    </div>
+  </div>
+  <div class="control-group">
+    <label class="control-label" for="bbox-south">Bounding Box South</label>
+    <div class="controls">
+      <input id="bbox-south" class="form-control" name="bbox-south" size="20" type="text" value="{{data.get('bbox-south', '')}}" />
+    </div>
+  </div>
+  <div class="control-group">
+    <label class="control-label" for="bbox-east">Bounding Box East</label>
+    <div class="controls">
+      <input id="bbox-east" class="form-control" name="bbox-east" size="20" type="text" value="{{data.get('bbox-east', '')}}" />
+    </div>
+  </div>
+  <div class="control-group">
+    <label class="control-label" for="bbox-west">Bounding Box West</label>
+    <div class="controls">
+      <input id="bbox-west" class="form-control" name="bbox-west" size="20" type="text" value="{{data.get('bbox-west', '')}}" />
+    </div>
+  </div>
+  <hr/>
+
+  <div class="control-group">
+    <label class="control-label" for="geographic_coverage-other">Geographic Coverage (other)</label>
+    <div class="controls">
+      <input id="geographic_coverage-other" class="form-control" name="geographic_coverage-other" size="40" type="text" value="{{data.get('geographic_coverage-other', '')}}" />
+      <p class="instructions basic">If not a bounding box above</p>
+    </div>
+  </div>
+  <hr/>
+
+  <div class="control-group">
+    <label class="control-label" for="vertical_extent">Vertical Extent</label>
+    <div class="controls">
+      <input id="vertical_extent" class="form-control" name="vertical_extent" size="40" type="text" value="{{data.get('vertical_extent', '')}}"/>
+    </div>
+    <p class="instructions basic">Format: Domain name: sea level, Min value: -1, Max value: 0</p>
+  </div>
+  <hr>
+
+  <div class="control-group">
+    <label class="control-label" for="lineage">Lineage</label>
+    <div class="controls">
+      <input id="lineage" class="form-control" name="lineage" size="40" type="text" value="{{data.get('lineage', '')}}"/>
+      <p class="instructions hint">String</p>
+    </div>
+  </div>
+  <hr/>
+
+  <div class="form-group">
+    <label for="spatial-reference-system">Spatial Reference System</label>
+    <select id="spatial-reference-system" class="form-control" name="spatial-reference-system">
+      <option value="" selected="selected">Please select a spatial reference system...</option>
+      <option value="Irish Transverse Mercator">Irish Transverse Mercator</option>
+      <option value="Irish Grid">Irish Grid</option>
+      <option value="European Terrestrial Reference System 1989">European Terrestrial Reference System 1989</option>
+      <option value="Ireland 1975 Mapping Adjustment">Ireland 1975 Mapping Adjustment</option>
+      <option value="World Geodetic System 1984">World Geodetic System 1984</option>
+    </select>
+  </div>
+
+  <div class="control-group">
+    <label class="control-label" for="spatial-resolution">Spatial Resolution</label>
+    <div class="controls">
+      <input id="spatial-resolution" class="form-control" name="spatial-resolution" size="40" type="text" value="{{data.get('spatial-resolution', '')}}"/>
+      <p class="instructions hint">String</p>
+    </div>
+  </div>
+
+  {% if data.get('geographic_granularity', '') %}
+  <div class="control-group" >
+    <label class="control-label" for="geographic_granularity">Geographic granularity</label>
+
+    <div class="controls">
+      <div class="form-inline">
+        <select id="geographic_granularity" name="geographic_granularity">
+          {% for geog_name, geog_desc in c.geographic_granularity %}
+          <option value="{{geog_name}}" {% if data.get('geographic_granularity', '') == geog_name %}selected="selected"{% endif %}>
+            {{geog_desc}}
+          </option>
+          {% endfor %}
+        </select>
+        <label class="inline" for="geographic_granularity-other">Other:</label>
+        <input class="input-medium" id="geographic_granularity-other"
+          name="geographic_granularity-other" type="text" value="{{data.get('geographic_granularity-other', '')}}"/>
+      </div>
+      <p class="instructions further">This should give the lowest level of geographic detail given in the dataset if it is aggregated. If the data is not aggregated, and so the dataset goes down to the level of the entities being reported on (such as school, hospital, or police station), use 'point'. If none of the choices is appropriate or the granularity varies, please specify in the 'other' element.</p>
+      {{ m.display_error(errors, 'geographic_granularity', True) }}
+    </div>
+  </div>
+  {% endif %}
+</fieldset>
+
+
+<fieldset class="tab-pane boxed whitebox fade" id="section-api-linked-data-field">
+  <h3>API</h3>
+  {% set ind_res = data.get('individual_resources', []) %}
+  {% if ind_res or not c.pkg %}
+  {% if h.has_resources_api(ind_res) %}
+  <p>Great! Your dataset has API resources. Please use the form below for the main API of this dataset.</p>
+  <div class="control-group">
+    <label class="control-label" for="api_access-url">Access URL</label>
+    <div class="controls">
+      <input id="api_access-url" class="form-control" name="api_access-url" size="40" type="text" placeholder="http://example.org/data/api" value="{{data.get('api_access-url', '')}}" />
+      <p class="basic">Where can users/agents find your your API.</p>
+    </div>
+  </div>
+  <div class="control-group">
+    <label class="control-label" for="api_type">Type</label>
+    <div class="controls">
+      <input id="api_type" class="form-control" name="api_type" size="40" type="text" placeholder="REST" value="{{data.get('api_type', '')}}" />
+      <p class="basic">REST, SOAP, etc.</p>
+    </div>
+  </div>
+  <div class="control-group">
+    <label class="control-label" for="api_response-formats">Response Formats</label>
+    <div class="controls">
+      <input id="api_response-formats" class="form-control" name="api_response-formats" size="40" type="text" placeholder="JSON" value="{{data.get('api_response-formats', '')}}" />
+      <p class="basic">XML, JSON, JSON-LD, etc. Separate values with commas.</p>
+    </div>
+  </div>
+  {% else %}
+  <p>Your dataset does not seem to have any associated API resources. <a data-toggle="tab" class="" data-hash="tab-data"  href="#section-data-field">Add one</a>, if this exists.</p></p>
+  {% endif %}
+  {% endif %}
+  <hr/>
+  <h3>Linked Data</h3>
+  {% if ind_res or not c.pkg %}
+  {% if h.has_resources_linked_data(ind_res) %}
+  <p>Your dataset appears to have Linked Data resources. Please fill in the information below.</p>
+  <p class="instructions">Use this form to provide information for the main API of this dataset.</p>
+  <div class="control-group">
+    <label class="control-label" for="api_type">SPARQL Endpoint</label>
+    <div class="controls">
+      <input id="linked_data_sparql-endpoint" class="form-control" name="linked_data_sparql-endpoint" size="40"
+             type="text" placeholder="http://example.org/data/sparql"
+             value="{{data.get('linked_data_sparql-endpoint', '')}}"/>
+      <p class="basic">Leave blank if no SPARQL endpoint availbale.</p>
+    </div>
+  </div>
+  {% else %}
+  <p>Your dataset does not seem to have any associated Linked Data resources. <a data-toggle="tab" class="" data-hash="tab-data"  href="#section-data-field">Add one</a>, if this exists.</p>
+  {% endif %}
+  {% endif %}
+</fieldset>
+
+<div class="clearfix">&nbsp;</div>
+</div><!-- /tab-content -->
+
+<div class="form-actions">
+  <div id="nav-controls" class="submit">
+    <div class="nav-backnext">
+      {% if not h.is_package_edit_form(data) %}
+        <input disabled="disabled" class="btn btn-primary" type="button" id="back-button" value="&laquo; Back" />
+        <input                     class="btn btn-primary" type="button" id="next-button" value="Next &raquo;" />
+      {% endif %}
+        <input id="save-button" class="btn btn-lg btn-primary" name="save" type="submit" value="Save and Finish" />
+    </div>
+  </div>
+  <div id="disclaimer">
+    <p class="hints"><strong>Important:</strong> By submitting content, you agree to release your contributions under the <a href="/licence">licence conditions</a> of the site.</p>
+  </div>
+</div><!-- /form-actions -->
+
+</div><!-- col-xx-xx -->
+</div><!-- row -->
+</div>
+
+
+<div class="modal fade" id="package_type_modal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <!--button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button-->
+        <h4 class="modal-title">Discard date information?</h4>
+      </div>
+      <div class="modal-body">
+        <p>Changing from a 'timeseries record' to a 'single file record' will discard the <code>date</code> information for each resource. Continue?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn cancel btn-default" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn ok btn-primary" data-dismiss="modal">OK</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+</form>

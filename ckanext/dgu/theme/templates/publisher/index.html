@@ -1,0 +1,70 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+      xmlns:i18n="http://genshi.edgewall.org/i18n"
+      xmlns:xi="http://www.w3.org/2001/XInclude"
+      py:strip="">
+
+    <py:def function="page_title">Publishers</py:def>
+
+    <py:match path="breadcrumbs">
+        <li><a href="/publisher">Publishers</a></li>
+    </py:match>
+
+    <py:match path="content" py:with="hierarchy=h.organization_list_with_datasets()">
+        <article class="page-standalone" about="/publisher">
+            <header>
+                <h1>Publishers</h1>
+            </header>
+            <div py:if="c.userobj" class="panel panel-info">
+                <div class="panel-heading"><strong>Adding New Publishers</strong></div>
+                <div class="panel-body">If you are from a public sector body not listed yet, please <a href="mailto:opendata@per.gov.ie">get in touch</a>!</div>
+            </div>
+            <div class="search-area" style="margin-top: 20px; margin-bottom: 30px;">
+                <div class="clearfix dgu-equal-height" data-selector=".auto-height">
+                    <div class="left">
+                        <div class="left-inner auto-height form-search">
+                            <div class="input-group">
+                                <input id="js-search" class="form-control" type="text" name="q" value="${c.q}" results="0" placeholder="Start typing a name..." />
+                                <span class="input-group-btn">
+                                    <button type="submit" class="btn btn-default">
+                                        <i class="icon-search"></i>
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="right">
+                        <div class="right-inner auto-height">
+                            <div class="chevron"></div>
+                            <div class="result-count">All</div>
+                            <div class="result-count-footer">Publishers</div>
+                        </div>
+                    </div>
+                </div>
+            </div><!-- /search-area -->
+
+            <div class="publisher-hierarchy empty-search">
+
+                <py:def function="render_publisher(pub)">
+                    <div class="publisher collapsed">
+                        <div class="publisher-row">
+                            <a href="/publisher/${pub['name']}">
+                                ${pub['title']}
+                            </a>
+                        </div>
+                    </div>
+                </py:def>
+
+                <py:for each="pub in hierarchy">
+                    ${render_publisher(pub)}
+                </py:for>
+
+            </div>
+        </article>
+    </py:match>
+
+    <py:def function="optional_footer">
+        <script src="/scripts/dgu-publisher-index.min.js"></script>
+    </py:def>
+
+    <xi:include href="../layout.html" />
+</html>

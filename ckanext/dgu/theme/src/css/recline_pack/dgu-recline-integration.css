@@ -1,0 +1,123 @@
+.recline-query-editor form, .recline-query-editor .text-query {
+  height: 28px;
+}
+.recline-query-editor .pagination ul {
+  margin: 0;
+  padding: 0;
+}
+/* needed for Chrome but not FF */
+.header .recline-query-editor .add-on {
+  margin-left: -27px;
+}
+
+/* needed for FF but not chrome */
+.header .recline-query-editor .input-prepend {
+  vertical-align: top;
+}
+
+/** Re-style the data viewer to remove controls,
+  * column menus, row menus, and the leading
+  * (control) column.
+  */
+.recline-data-explorer .header,
+.recline-data-explorer .column-header-menu,
+.recline-data-explorer .root-header-menu,
+.recline-data-explorer .row-header-menu,
+.recline-data-explorer td:first-child,
+.recline-data-explorer th:first-child {
+  display: none;
+}
+
+#ckanext-datapreview-extra {
+	margin-bottom: 1em;
+}
+
+.tbrowser {
+    width: 100%;
+    background-color: #fff;
+}
+.tbrowser caption, .tbrowser tfoot td {
+    text-align: left;
+    color: #000;
+    background-color: #fefefe;
+}
+.tbrowser legend {
+    color: #000;
+}
+.tbrowser caption .label {
+    color: #000;
+    display: block;
+    padding: 3px 3px 8px 3px;
+    font-size: 18px;
+    font-weight: normal;
+}
+.tbrowser thead {
+    border-top: 1px #333 solid;
+    border-left: 1px #333 solid;
+    border-right: 1px #333 solid;
+}
+.tbrowser tfoot {
+    border-bottom: 1px #333 solid;
+    border-left: 1px #333 solid;
+    border-right: 1px #333 solid;
+}
+.tbrowser tbody {
+    border-left: 1px #333 solid;
+    border-right: 1px #333 solid;
+
+    tr {
+      td {
+          text-align: center;
+      }
+    }
+}
+.tbrowser caption form,
+.tbrowser tbody th {
+    white-space: nowrap;
+}
+.tbrowser caption strong {
+    font-weight: normal;
+    padding: 2px;
+    border: 1px solid #ddd;
+    color: #000;
+}
+.tbrowser select {
+    padding: 2px;
+}
+.tbrowser caption a {
+    cursor: pointer;
+    text-decoration: none;
+    color: #000;
+    font-size: 26px;
+    font-weight: bold;
+    line-height: 0;
+    vertical-align: sub;
+}
+.tbrowser caption, .tbrowser th, .tbrowser td {
+    padding: 6px;
+}
+.tbrowser th {
+    text-align: left;
+    background-color: #eee;
+}
+.tbrowser thead th {
+    text-align: center;
+}
+.tbrowser td {
+    text-align: right;
+    background-color: #ddd;
+}
+.tbrowser fieldset {
+    padding: 10px;
+        margin-bottom: 10px;
+}
+.tbrowser p {
+    margin: 0 0 5px 4px;
+}
+.tbrowser p:last-of-type {
+    margin-bottom: 0;
+}
+.tbrowser tbody tr:hover th, .tbrowser tbody tr:hover td {
+    background-color: #ccc;
+}
+

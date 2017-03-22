@@ -1,0 +1,193 @@
+{% extends "page.html" %}
+
+{% block title %}Reports - Data publication commitments - {{c.publisher.display_name}}{% endblock %}
+
+{% block breadcrumb_content %}
+  {{ h.build_nav('dgu_search', _('Datasets')) }}
+  {{ h.build_nav('publisher_read', c.publisher.title, id=c.publisher.name )}}
+  {{ h.build_nav('commitments', _('Data Publication Commitments')) }}
+{% endblock %}
+
+
+{% block primary_content_inner %}
+    <h1>Data publication commitments <small>{{c.publisher.title}}</small></h1>
+
+    <h2>Last generated: {{h.render_datetime(h.report_generated_at('commitments', c.publisher.name), with_hours=True)}}</h2>
+
+    {% if (h.check_access('organization_update',{ 'id': c.publisher.id }) and h.has_commitment(c.publisher)) %}
+    <div class="admin-toolkit pull-right">
+      <div class="panel panel-info">
+        <div class="panel-heading"><strong>Administrator tools</strong></div>
+        <div class="panel-body">
+          <a href="{{h.url_for('commitments_edit',id=c.publisher.name)}}"><span class="wrap-icon"><i class="icon-edit"></i> </span>Edit publisher commitments »</a>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div>
+        <p>
+           This page lists the public commitments to the release of further datasets by the Department along with links to the data where is has been released or identified as an unpublished dataset. These commitments are only those which have been made to the release of data and Departments may have made public commitments in terms of further activity. This page does not list links to the corporate commitments which all central government Departments and ALBs have been committed to release from the Coalition Agreement and letters from the Prime Minister of May 2010 and July 2011.
+        </p>
+        <p>This page is a beta release – it does not yet list all of the commitment which the Department has made. Further additions will be made on an ongoing basis.</p>
+    </div>
+
+
+
+    <div>&nbsp;</div>
+    <h2><a href="http://www.number10.gov.uk/news/letter-to-government-departments-on-opening-up-data">Prime Minister's Letter May 2010</a></h2>
+    {% with %}
+      {% set commitments = h.commitments_by_source(c.commitments, 'PM1') %}
+      {% if commitments|length == 0 %}
+        <div class="">
+        No data provided
+        </div>
+      {% endif %}
+
+      {% if commitments|length > 0 %}
+      <div class="">
+          <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%; table-layout: fixed;">
+            <thead>
+              <tr>
+                <th>Commitment</th>
+                <th>Dataset</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for commitment in commitments %}
+              {% with %}
+                {% set dataset = h.commitment_dataset(commitment) %}
+                  <tr>
+                      <td>
+                        {% if commitment.dataset_name and not (commitment.commitment_text.strip() == commitment.dataset_name.strip()) %}
+                            <strong>{{commitment.dataset_name}}</strong>
+                            <br/>
+                        {% endif %}
+                        {{commitment.commitment_text}}
+                      </td>
+
+                      {% if dataset %}
+                        <td><a href="{{h.url_for(controller='package',action='read',id=dataset.name)}}">{{dataset.title}}</a></td>
+                      {% else %}
+                        <td>
+                           {% if commitment.dataset %}<a href="{{commitment.dataset}}">{{commitment.dataset}}</a>{% endif %}
+                        </td>
+                      {% endif %}
+                  </tr>
+                {% endwith %}
+              {% endfor %}
+            </tbody>
+          </table>
+      </div>
+      {% endif %}
+    {% endwith %}
+
+    <div>&nbsp;</div>
+
+    <h2><a href="http://www.number10.gov.uk/news/letter-to-cabinet-ministers-on-transparency-and-open-data">Prime Minister's Letter July 2011</a></h2>
+    {% with %}
+      {% set commitments = h.commitments_by_source(c.commitments, 'PM2') %}
+      {% if commitments|length  == 0 %}
+      <div class="">
+      No data provided
+      </div>
+      {% else %}
+      <div class="">
+
+          <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%; table-layout: fixed;">
+            <thead>
+              <tr>
+                <th>Commitment</th>
+                <th>Dataset</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for commitment in commitments %}
+                {% with %}
+                  {% set dataset = h.commitment_dataset(commitment) %}
+                  <tr>
+                      <td>
+                        {% if commitment.dataset_name and not (commitment.commitment_text.strip() == commitment.dataset_name.strip()) %}
+                            <strong>{{commitment.dataset_name}}</strong>
+                            <br/>
+                        {% endif %}
+                        {{commitment.commitment_text}}
+                      </td>
+
+                      {% if dataset %}
+                        <td><a href="{{h.url_for(controller='package',action='read',id=dataset.name)}}">{{dataset.title}}</a></td>
+                      {% else %}
+                      <td>
+                         {% if commitment.dataset %}<a href="{{commitment.dataset}}">{{commitment.dataset}}</a>{% endif %}
+                      </td>
+                      {% endif %}
+                  </tr>
+                {% endwith %}
+              {% endfor %}
+            </tbody>
+          </table>
+      </div>
+      {% endif %}
+    {% endwith %}
+
+<div>&nbsp;</div>
+
+    {% set url = h.open_data_strategy_link(c.publisher) %}
+    <h2>
+      {% if url %}
+        <a href="{{h.open_data_strategy_link(c.publisher)}}">Open data strategy</a>
+      {% else %}
+        Open data strategy
+      {% endif %}
+    </h2>
+    {% with %}
+      {% set commitments = h.commitments_by_source(c.commitments, 'ODS') %}
+
+      {% if commitments|length  == 0 %}
+      <div class="">
+      No data provided
+      </div>
+      {% else %}
+      <div class="">
+          <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%; table-layout: fixed;">
+            <thead>
+              <tr>
+                <th>Commitment</th>
+                <th>Dataset</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for commitment in commitments %}
+                {% with %}
+                {% set dataset = h.commitment_dataset(commitment) %}
+                  <tr>
+                      <td>
+                        {% if commitment.dataset_name and not (commitment.commitment_text.strip() == commitment.dataset_name.strip()) %}
+                            <strong>{{commitment.dataset_name}}</strong>
+                            <br/>
+                        {% endif %}
+                        {{commitment.commitment_text}}
+                      </td>
+
+                      {% if dataset %}
+                      <td><a href="{{h.url_for(controller='package',action='read',id=dataset.name)}}">{{dataset.title}}</a></td>
+                      {% else %}
+                      <td style="overflow: hidden;">
+                          {% if commitment.dataset %}
+                            <a href="{{commitment.dataset}}">
+                                {{h.truncate(commitment.dataset,60)}}
+                            </a>
+                          {% endif %}
+                      </td>
+                      {% endif %}
+                  </tr>
+                {% endwith %}
+              {% endfor %}
+            </tbody>
+          </table>
+      </div>
+      {% endif %}
+    {% endwith %}
+
+{% endblock %}
+

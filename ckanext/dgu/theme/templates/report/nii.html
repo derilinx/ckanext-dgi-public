@@ -1,0 +1,52 @@
+
+
+  <div class="widget-container">
+
+      <p>
+        NII totals: {{data['num_resources']}} resources in {{data['num_datasets']}} datasets across {{data['num_organizations']}} organizations
+      </p>
+      <p>
+        Broken: {{data['num_broken_resources']}} broken resources in {{data['num_broken_datasets']}} broken datasets across {{data['num_broken_organizations']}} organizations
+      </p>
+      <ul>
+      {% for publisher_name, publisher_title in data['organizations'] %}
+        <li><a href="#{{ publisher_name }}">{{ publisher_title }}</a></li>
+      {% endfor %}
+      </ul>
+
+      {% for publisher_name, publisher_title in data['organizations'] %}
+        <h2><a name="{{publisher_name}}" href="/publisher/{{publisher_name}}">{{publisher_title}}</a></h2>
+        <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th style="width: 400px">Dataset</th>
+                <th style="width: 100px">Notes</th>
+                <th style="width: 100px">Broken resource count</th>
+                <th>Broken resources</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for dataset in h.report_match_organization_name(publisher_name, table) %}
+                  <tr {% if dataset['num_broken_resources'] > 0 %}class="warning"{% endif %}>
+                      <td><a href="/dataset/{{dataset['name']}}">{{dataset['title']}}</a></td>
+                      <td>{{dataset['dataset_notes']}}</td>
+                      <td>{{dataset['num_broken_resources']}}</td>
+                      <td>
+                          {% if dataset['broken_resources'] %}
+                          <ul>
+                            {% for rdesc,rid in dataset['broken_resources'] %}
+                              <li>
+                                  <a href="/dataset/{{dataset['name']}}/resource/{{rid}}">{{rdesc or "Unnamed"}}</a>
+                              </li>
+                            {% endfor %}
+                          </ul>
+                          {% endif %}
+                      </td>
+                  </tr>
+              {% endfor %}
+            </tbody>
+        </table>
+
+      {% endfor %}
+  </div>
+

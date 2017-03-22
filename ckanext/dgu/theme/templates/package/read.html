@@ -1,0 +1,356 @@
+{% extends "package/read_common_jinja.html" %}
+
+{% import "inventory/inventory_util_jinja.html" as inventory_m with context %}
+{% import "_dgu_jinja_util.html" as m with context %}
+
+{% block optional_head %}
+    <link rel="alternate" type="application/rdf+xml" href="{{h.url_for(controller='package', action='read', id=c.pkg.name, format='rdf')}}"/>
+    <script type="text/javascript" src="{{h.url_for_static('/scripts/dgu-package.min.js')}}"></script>
+    <script type="text/javascript">
+     window.DATASET_ID = "{{c.pkg_dict.get('id')}}";
+    </script>
+
+    {{ super() }}
+{% endblock %}
+
+
+{% block title %}{{c.pkg_dict.get('title', c.pkg_dict['name'])}} - Datasets{% endblock %}
+
+
+{% block breadcrumb_content %}
+    {{ h.build_nav('dgu_search', _('Datasets')) }}
+    {{ h.build_nav('dataset_read', c.pkg_dict.get('title', c.pkg_dict['name']), id=c.pkg_dict['name']) }}
+{% endblock %}
+
+
+{% macro package_content() %}
+
+    {% set is_location_data          = h.is_location_data(c.pkg_dict) %}
+    {% set dataset_is_from_ns_pubhub = h.dataset_is_from_ns_pubhub(c.pkg_dict) %}
+    {% set is_local_government_data  = h.is_local_government_data(c.pkg_dict) %}
+
+    <!-- Warn if reading old revision -->
+    {% if c.pkg_revision_id %}
+        <div class="panel panel-warning">
+            <div class="panel-heading">Viewing Dataset Revision</div>
+            {% if c.pkg_revision_not_latest %}
+                <div class="panel-body">
+                    This is an old revision of this dataset, as edited at {{h.render_datetime(c.pkg_revision_timestamp)}}. It may differ significantly from the <a href="{{h.url(controller='package', action='read', id=c.pkg.name)}}">current revision</a>.
+                </div>
+            {% endif %}
+            {% if not c.pkg_revision_not_latest %}
+                <div class="panel-body">
+                    This is the current revision of this dataset, as edited at {{h.render_datetime(c.pkg_revision_timestamp)}}.
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <div id="dataset">
+        <!--! id=dataset for ckanext-spatial -->
+    </div>
+
+    {% set publisher_name = c.pkg.get_organization().name %}
+    {% if not h.is_unpublished_item(c.pkg_dict) %}
+        <div class="dataset-resources">
+            <!-- Resources -->
+            {% if h.individual_resources() %}
+                <h2>Data Resources ({{h.individual_resources()|length}})</h2>
+                {{resource_table(h.individual_resources(), publisher_name)}}
+            {% endif %}
+            {% if h.timeseries_resources() %}
+                <h2>Data Resources ({{h.timeseries_resources()|length}} in a time series)</h2>
+                {{resource_table(h.timeseries_resources(), publisher_name)}}
+                {#{% for year, items in h.groupby(h.timeseries_resources()|reverse, h.extract_year) %}
+                    <div class="year">
+                        <h3>{{year}} <span class="showyear"></span><span class="hideyear"></span></h3>
+                        <div class="year_items">
+                            {{resource_table(items, publisher_name)}}
+                        </div>
+                    </div>
+                {% endfor %}#}
+            {% endif %}
+        </div>
+    {% endif %}
+    {% if not h.is_unpublished_item(c.pkg_dict) %}
+        <div class="dataset-resources-additional">
+            {% if h.additional_resources() or h.gemini_resources() %}
+                <h2>Additional Links ({{h.additional_resources()|length + h.gemini_resources()|length}})</h2>
+                {{resource_table(h.additional_resources() + h.gemini_resources(), publisher_name)}}
+            {% endif %}
+
+            {% if not (is_location_data or h.individual_resources() or h.timeseries_resources() or h.additional_resources()) %}
+                <em>(none)</em>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    {% set preview_resource = h.resource_to_preview_on_dataset_page(c.pkg_dict.get('resources')) %}
+    {% if preview_resource %}
+        <script>
+          var embedPath = "{{h.url_for(controller='package', action='resource_embedded_dataviewer', id=c.pkg_dict.id, resource_id=preview_resource.id, qualified=True)}}";
+        </script>
+
+        <div class="dataset-resource-preview">
+            {% if preview_resource.get('name') %}
+            <h2>Data Resource Preview - {{preview_resource.get('name')}}</h2>
+            {% else %}
+            <h2>Data Resource Preview</h2>
+            {% endif %}
+
+            <link rel="stylesheet" href="/css/dgu-recline-pack.min.css" />
+
+            {% if h.is_preview_geo_resource(preview_resource) %}
+                <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.css" />
+                <script src="//cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.js"></script>
+                <script src='//api.tiles.mapbox.com/mapbox.js/plugins/leaflet-omnivore/v0.3.1/leaflet-omnivore.min.js'></script>
+                <style>.leaflet-popup-content {max-width:300px;max-height:300px;overflow:scroll;}</style>
+            {% else %}
+                <script type="text/javascript" src="//www.gstatic.com/charts/loader.js"></script>
+            {% endif %}
+
+            <script type="text/javascript" src="{{h.url_for_static('/scripts/dgu-recline-pack.min.js')}}"></script>
+            <script type="text/javascript">
+             $(function() {
+                 var preload_resource = {{h.literal(h.resource_as_json(preview_resource)) }};
+                 CKAN.Dgu.resourcePreviewer.loadPreviewDialog(preload_resource);
+             });
+            </script>
+
+
+            <div class="resource-preview">
+                <div id="ckanext-datapreview"></div>
+                <div id="ckanext-datapreview-extra"></div>
+                <div id="ckanext-html-preview"></div>
+            </div>
+        </div>
+
+    {% endif %}
+
+    {% macro format_box(format_name) %}
+        <div class="format-box" data-format="{{h.dgu_format_name(format_name)}}">
+          {% if format_name %}
+          <span property="dc:format">{{h.dgu_format_name(format_name)}}</span>
+          {% endif %}
+        </div>
+    {% endmacro %}
+
+    {% if not h.is_unpublished_item(c.pkg_dict) %}
+        {% set isApi = h.has_package_api(c.pkg_dict) %}
+        {% if isApi %}
+            <div class="dataset-additional-information" >
+                <h2>API Information</h2>
+                <table class="table table-bordered table-condensed table-dgu-fixed-size dgu-table" style="margin-bottom: 45px;">
+                    <tbody>
+                        <tr>
+                            <td class="key">Access URL</td>
+                            <td class="value"><a href="{{c.pkg_dict.get('api_access-url', 'None')}}" target="_blank">{{c.pkg_dict.get('api_access-url', 'None')}}</a></td>
+                        </tr>
+                        <tr>
+                            <td class="key">Type</td>
+                            <td class="value">{{c.pkg_dict.get('api_type', 'None')}}</td>
+                        </tr>
+                        <tr>
+                            {% set formats = h.get_api_formats_list(c.pkg_dict.get('api_response-formats', '')) %}
+                            <td class="key">Response Available Formats</td>
+                            <td class="value">
+                                {% for format in formats %}
+                                    {{format_box(format.lower())}}
+                                {% endfor %}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+        {% set isLinkedData = h.has_package_linked_data(c.pkg_dict)%}
+        {% if isLinkedData %}
+            <div class="dataset-additional-information" >
+                <!-- Linked Data Information Section -->
+                <h2>Linked Data Information</h2>
+
+                <table class="table table-bordered table-condensed table-dgu-fixed-size dgu-table" style="margin-bottom: 45px;">
+                    <tbody>
+                        <tr>
+                            <td class="key">SPARQL Endpoint</td>
+                            <td class="value"><a href="{{c.pkg_dict.get('linked_data_sparql-endpoint')}}" target="_blank">{{c.pkg_dict.get('linked_data_sparql-endpoint')}}</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+        {% set extra_fields = h.get_package_fields_dict(c.pkg, h.as_dict(c.pkg_extras), True, True, True, True)  %}
+        <div class="dataset-additional-information" >
+            <!-- Dataset Information Section -->
+            <h2>Additional Information</h2>
+
+            <table class="table table-bordered table-condensed table-dgu-fixed-size dgu-table" style="margin-bottom: 45px;">
+                <tbody>
+                    <tr>
+                        <td class="key">Title</td>
+                        <td class="value">{{c.pkg_dict.get('title', 'No value')}}</td>
+                    </tr>
+                    <tr>
+                        <td class="key">Description</td>
+                        <td class="value">{{h.render_markdown(c.pkg_dict.get('notes', 'No value'))}}</td>
+                    </tr>
+                    <tr>
+                        <td class="key">Contact Point</td>
+                        {% set contact_details = h.get_contact_details(c.pkg_dict, h.as_dict(c.pkg_extras)) %}
+                        <td class="value">
+                            name: {{contact_details[0]}}<br/>
+                            email: {{contact_details[1]}}<br/>
+                            phone: {{contact_details[2]}}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="key">Keywords</td>
+                        <td class="value">{{h.get_tag_list(c.pkg_dict, toString=True)}}</td>
+                    </tr>
+                    <tr>
+                        <td class="key">Theme</td>
+                        <td class="value">{{h.get_primary_theme(c.pkg_dict, fullName=True)}}</td>
+                    </tr>
+                    <tr>
+                        <td class="key">Publisher</td>
+                        <td class="value">{{h.package_publisher_dict(c.pkg_dict).get('title', 'No value')}}</td>
+                    </tr>
+                    <tr>
+                        <td class="key">Issue Date</td>
+                        <td class="value">{{h.render_db_date(c.pkg_dict.get('date_released', ''))}}</td>
+                    </tr>
+                    {% if h.as_dict(c.pkg_extras).get('conforms-to') %}
+                        <tr>
+                            <td class="key">Conforms To</td>
+                            <td class="value">{{h.as_dict(c.pkg_extras).get('conforms-to', 'No value')}}</td>
+                        </tr>
+                    {% endif %}
+                    <tr>
+                        <td class="key">Last Modification Date</td>
+                        <td class="value">{{h.render_db_date(c.pkg_dict.get('date_updated', ''))}}</td>
+                    </tr>
+                    <tr>
+                        <td class="key">Publication Frequency</td>
+                        <td class="value">{{h.as_dict(c.pkg_extras).get('update_frequency', 'No value')}}</td>
+                    </tr>
+                    <tr>
+                        <td class="key">Language</td>
+                        <td class="value">{{h.as_dict(c.pkg_extras).get('language', 'No value')}}</td>
+                    </tr>
+                    <tr>
+                        <td class="key">Landing Page</td>
+                        <td class="value"><a target="_blank" href="{{c.pkg_dict.get('url', '#')}}">{{c.pkg_dict.get('url', 'No value')}}</a></td>
+                    </tr>
+                    <tr>
+                        <td class="key">Geographic Coverage</td>
+                        <!--checks in order: geographic_coverage, geographic_coverage-other, bbox-->
+                        <td class="value">{{h.get_geographic_coverage(c.pkg_extras, 'No value')}}</td>
+                    </tr>
+                    {% if h.get_vertical_extent(c.pkg_extras) %}
+                        <tr>
+                            <td class="key">Vertical Extent</td>
+                            <td class="value">{{h.get_vertical_extent(c.pkg_extras, 'No value')}}</td>
+                        </tr>
+                    {% endif %}
+                    {% if c.pkg_dict.get('lineage') %}
+                        <tr>
+                            <td class="key">Lineage</td>
+                            <td class="value">{{c.pkg_dict.get('lineage', 'No value')}}</td>
+                        </tr>
+                    {% endif %}
+                    {% if h.get_temporal_coverage(c.pkg_extras) %}
+                        <tr>
+                            <td class="key">Temporal Extent</td>
+                            <td class="value">{{h.get_temporal_coverage(c.pkg_extras, 'No value')}}</td>
+                        </tr>
+                    {% endif %}
+                    {% if h.as_dict(c.pkg_extras).get('temporal_coverage-other') %}
+                        <tr>
+                            <td class="key">Temporal Notes</td>
+                            <td class="value">{{h.as_dict(c.pkg_extras).get('temporal_coverage-other', 'No value')}}</td>
+                        </tr>
+                    {% endif %}
+                    {% if h.as_dict(c.pkg_extras).get('spatial-reference-system') %}
+                        <tr>
+                            <td class="key">Spatial Reference System</td>
+                            <td class="value">{{h.as_dict(c.pkg_extras).get('spatial-reference-system', 'No value')}}</td>
+                        </tr>
+                    {% endif %}
+                    {% if h.as_dict(c.pkg_extras).get('spatial-resolution') %}
+                        <tr>
+                            <td class="key">Spatial Resolution</td>
+                            <td class="value">{{h.as_dict(c.pkg_extras).get('spatial-resolution', 'No value')}}</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+{% endmacro %}
+
+{% macro resource_table(resources, publisher_name) %}
+    <div class="row">
+        {% for res in resources %}
+            <div class="{% if h.get_length(resources) <= 3 %}col-sm-12{% else %}col-sm-6{% endif %}">
+                <div class="dataset-resource">
+                    <div class="dataset-resource-format col-md-2" style="padding:0px 0px 0px 0px;">
+                        <i class="icon-3x icon-file-text"></i>
+                        <span class="format-name">
+                            {% filter upper %}
+                                {{ res.get('format','') }}
+                            {% endfilter %}
+                        </span>
+                    </div>
+                    <div class="dataset-resource-text col-md-7">
+                        <div class="inner">
+                            <div class="inner2">
+                                {% if h.is_resource_broken(res['id']) %}
+                                    <a class="js-tooltip" data-toggle="tooltip" data-placement="right" title="There is an error with this resource" href="{{h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}}#qualitycheck" style="text-decoration:none;color:#D43F3A;">
+                                        <i class="icon-exclamation-sign"></i>
+                                    </a>
+                                {% endif %}
+
+                                {{res.get('date','')}}
+                                <div>
+                                    {{h.resource_display_name(res)}}
+                                </div>
+                                {% if res.get('description') %}
+                                    <div class="hidden" style="color:#4c4c4c">
+                                        {{res.get('description', '')}}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dataset-resource-buttons col-md-3" style="padding:10px 10px 10px 0px;">
+                        <a class="btn btn-lg btn-info btn-block" href="{{h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}}">
+                            {{'Preview' if h.predict_if_resource_will_preview(res) else 'Details'}}
+                            <i class="text-right icon-search"></i>
+                        </a>
+                        <a class="btn btn-lg btn-primary btn-block" href="{{res.get('url', '')}}" onclick="{{h.ga_download_tracking(res, publisher_name)}}">
+                            Download
+                            <i class="text-right icon-download-alt"></i>&nbsp;
+                        </a>
+                    </div><!--/dropdown-->
+                </div><!-- /dataset-resource -->
+            </div><!-- /col-sm-6 -->
+        {% endfor %}
+    </div>
+{% endmacro %}
+
+{% macro open_standards(id) %}
+    {% if h.is_plugin_enabled('openstandard') %}
+    <tr>
+        <td class="key">Data Models (Open Standards)</td>
+        {% set open_standards = h.get_package_open_standards(c.pkg_dict.get('id')) %}
+        <td class="value">
+            {% for pkg_dict in open_standards %}
+            <a href="{{h.url_for('ckanext_openstandard_read', id=pkg_dict['name'])}}"
+               target="_blank">{{pkg_dict['title']}}</a>
+            {% else %}
+            None
+            {% endfor %}
+        </td>
+    </tr>
+    {% endif %}
+{% endmacro %}

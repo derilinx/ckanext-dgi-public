@@ -1,0 +1,426 @@
+{% extends "page.html" %}
+
+{% block title %}Data.gov.ie{% endblock %}
+{% block toolbar %}{% endblock %}
+
+{% block pre_wrapper %}
+<header id="hero">
+    <div class="container">
+        <div class="row heroimg">
+            <div class="col-lg-12">
+                <div id="heropos" class="col-md-4">
+                    <div class="herodatabox whitetxt" style="width: 150px !important;">
+                        <h2>{{h.dataset_count()}}</h2>
+                        <span class="whitetxt">Datasets</span>
+                    </div>
+                    <div class="herosourcebox bluetxt">
+                        <h2>{{h.source_count()}}</h2>
+                        <span class="bluetxt">Publishers</span>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-md-push-2 col-sm-12 search" id="searchh">
+                    <div class="row">
+                        <div class="search">
+                            <form class="navbar-form" role="search" action="/data/search">
+                                <div class="input-group" style="width:100%;">
+                                    <input id="herosearchbox" type="text" class="form-control" placeholder="Search Datasets..." name="q" style="max-width: none;">
+                                    <div class="input-group-btn ">
+                                        <button id="herosearchbtn" class="btn btn-default btn-search" type="submit"><i class="glyphicon glyphicon-search fa-2x"></i></button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="row">
+
+                        <div class="herotextbox">
+                            <h2>IRELAND'S <strong>OPEN DATA</strong> PORTAL</h2>
+                            <p>Promoting innovation and transparency through the publication of Irish Public Sector data in open, free and reusable formats.</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12 col-md-4 col-md-push-8">
+                            <a class="btn btn-default btn-search" style="width: 100%; height: 2.4em; border-radius:4px; " href="/data/search">Explore Datasets</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+{% endblock %}
+{% block primary_content_inner %}
+<div class="container">
+    <!-- <div class="col-lg-12 "> -->
+    <!-- <h1 class="datah1">See datasets about...<h1> -->
+    <!-- </div> -->
+    <div class="row seven-cols button-row button-row-1" style="margin-top: 18px;">
+        <a href="/data/search?theme-primary=Agriculture">
+            <div class="col-md-1 buttoner agriculture">
+                <p>Agriculture, Fisheries, Forestry & Food</p>
+            </div>
+        </a>
+        <a href="/data/search?theme-primary=Arts">
+            <div class="col-md-1 buttoner arts">
+                <p>Arts, Culture and Heritage</p>
+            </div>
+        </a>
+        <a href="/data/search?theme-primary=Crime">
+            <div class="col-md-1 buttoner crime">
+                <p>Crime and Justice</p>
+            </div>
+        </a>
+        <a href="/data/search?theme-primary=Economy">
+            <div class="col-md-1 buttoner economics">
+                <p>Economy and Finance</p>
+            </div>
+        </a>
+        <a href="/data/search?theme-primary=Education">
+            <div class="col-md-1  buttoner education">
+                <p>Education</p>
+            </div>
+        </a>
+        <a href="/data/search?theme-primary=Energy">
+            <div class="col-md-1 buttoner energy">
+                <p>Energy</p>
+            </div>
+        </a>
+        <a href="/data/search?theme-primary=Environment">
+            <div class="col-md-1 buttoner enviro" style="overflow: hidden;">
+                <p>Environment</p>
+            </div>
+        </a>
+    </div>
+    <div class="row seven-cols button-row button-row-2">
+        <a href="/data/search?theme-primary=Government">
+            <div class="col-md-1 buttoner gov">
+                <p>Government and Public Sector</p>
+            </div>
+        </a>
+        <a href="/data/search?theme-primary=Health">
+            <div class="col-md-1 buttoner health">
+                <p>Health</p>
+            </div>
+        </a>
+        <a href="/data/search?theme-primary=Housing">
+            <div class="col-md-1 buttoner housing">
+                <p>Housing and Zoning</p>
+            </div>
+        </a>
+        <a href="/data/search?theme-primary=Society">
+            <div class="col-md-1 buttoner society">
+                <p>Population and Society</p>
+            </div>
+        </a>
+        <a href="/data/search?theme-primary=Science">
+            <div class="col-md-1 buttoner science">
+                <p>Science and Technology</p>
+            </div>
+        </a>
+        <a href="/data/search?theme-primary=Towns">
+            <div class="col-md-1 buttoner towns">
+                <p>Towns and Cities</p>
+            </div>
+        </a>
+        <a href="/data/search?theme-primary=Transport">
+            <div class="col-md-1 buttoner transport" style="overflow:hidden;">
+                <p>Transport</p>
+            </div>
+        </a>
+    </div>
+</div>
+
+<div class="container charts" style="padding-top: 18px;">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="panel panel-front-chart">
+                <div class="panel-heading">
+                    <h3>Third-Level Enrolment <a href="https://data.gov.ie/dataset/enrolments-of-full-time-students-thousand-by-year-and-level-of-education#&r=Year&c=Level%20of%20Education"><small>Data</small></a></h3>
+                </div>
+                <div class="panel-body">
+                    <div id="enrolmentChart"> </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="panel panel-front-chart">
+                <div class="panel-heading">
+                    <h3>VAT Registrations by Sector <a href="https://data.gov.ie/dataset/value-added-tax-vat-registrations-by-sector"><small>Data</small></a></h3>
+                </div>
+                <div class="panel-body">
+                    <div id="taxChart"> </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="panel panel-front-chart">
+                <div class="panel-heading">
+                    <h3>Pupil-Teacher Ratio <a href="https://data.gov.ie/dataset/pupil-teacher-ratio-ratio-by-year-and-type-of-educational-institution#&r=Year&c=Type%20of%20Educational%20Institution"><small>Data</small></a></h3>
+                </div>
+                <div class="panel-body">
+                    <div id="ratioChart"> </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="//www.gstatic.com/charts/loader.js"></script>
+    <script>
+     google.charts.load('current', {packages: ['corechart']});
+
+     google.charts.setOnLoadCallback(taxChart);
+     google.charts.setOnLoadCallback(enrolmentChart);
+     google.charts.setOnLoadCallback(ratioChart);
+
+     $(window).on('resize', function () {
+         google.charts.setOnLoadCallback(taxChart);
+         google.charts.setOnLoadCallback(enrolmentChart);
+         google.charts.setOnLoadCallback(ratioChart);
+     });
+
+     var chartColors = ['#01aef0', '#ed423a', '#21a5ad', '#88994d', '#fed136'];
+
+     function taxChart () {
+         var wrapper = new google.visualization.ChartWrapper({
+             chartType: 'PieChart',
+             containerId: 'taxChart',
+             dataTable: google.visualization.arrayToDataTable([["sector","number_registered"], ["Agriculture Forestry and Fishing",11649], ["Mining and Quarrying",426], ["Maufacturing",14790], ["Electricity Gas Steam and Air Conditioning Supply",696], ["Water Supply Sewerage and Waste Management",1216], ["Construction",47659], ["Wholesale and retail trade repair of motor vehicles and motorcycles",44863], ["Transportation and Storage",8763], ["Accommodation and Food Services",16539], ["Information and Communication",13665], ["Financial and Insurance Activities",6353], ["Real Estate Activities",17953], ["Professional Scientific and Technical Activities",33805], ["Administrative and Support Service Activities",12054], ["Public Administration and Defence",1452], ["Education",3917], ["Human Health and Social Work Activities",1726], ["Arts Entertainment and Recreation",4123], ["Other Services Activities",7049], ["Activities of Households",1487]]),
+             options: {
+                 legend: 'top',
+                 curveType: 'function',
+                 colors: chartColors,
+                 animation: {
+                     startup: true,
+                     duration: 440,
+                     easing: 'inAndOut'
+                 },
+             }
+         });
+         wrapper.draw();
+     }
+     function enrolmentChart() {
+         var enrolment = [["Year","Full-Time Students in Third-Level Education (Number)"],[1966,18449],[1967,19101],[1968,19626],[1969,21003],[1970,22585],[1971,24414],[1972,25482],[1973,26490],[1974,27135],[1975,29911],[1976,31730],[1977,33571],[1978,35237],[1979,35675],[1980,37425],[1981,40613],[1982,43231],[1983,46335],[1984,48411],[1985,50836],[1986,53473],[1987,55016],[1988,57221],[1989,60747],[1990,64137],[1991,68165],[1992,74449],[1993,81050],[1994,86624],[1995,89693],[1996,95099],[1997,100204],[1998,104439],[1999,108509],[2000,115696],[2001,119991],[2002,124589],[2003,129283],[2004,133887],[2005,133691],[2006,136719],[2007,138362],[2008,139134],[2009,146068],[2010,156973],[2011,161647],[2012,163068],[2013,164863],[2014,169254],[2015,173649]];
+         var wrapper = new google.visualization.ChartWrapper({
+             chartType: 'LineChart',
+             containerId: 'enrolmentChart',
+             dataTable: google.visualization.arrayToDataTable(enrolment),
+             options: {
+                 legend: 'top',
+                 curveType: 'function',
+                 colors: chartColors,
+                 animation: {
+                     startup: true,
+                     duration: 440,
+                     easing: 'inAndOut'
+                 },
+                 backgroundColor: {
+                     strokeWidth: 0
+                 },
+                 hAxis: {
+                     gridlines: {
+                         color: 'transparent'
+                     },
+                     format: "####"
+                 },
+                 vAxis: {
+                     gridlines: {
+                         color: 'transparent'
+                     },
+                     format: "short"
+                 },
+             }
+         });
+         wrapper.draw();
+     }
+     function ratioChart() {
+         var ratio = [["Year","First level education institutions","Second level education institutions"],[2000,20.3,14.8],[2001,19.2,14],[2002,18.4,13.5],[2003,18,13.2],[2004,17.1,13.6],[2005,17.1,13.4],[2006,16.6,13.1],[2007,16,13.1],[2008,16,12.9],[2009,15.9,13],[2010,16,13.6],[2011,15.7,13.6],[2012,16.2,13.9],[2013,16.4,14.3],[2014,16.3,14.3],[2015,16.2,14.2],[2016,16,14.1]]
+         var wrapper = new google.visualization.ChartWrapper({
+             chartType: 'LineChart',
+             containerId: 'ratioChart',
+             dataTable: google.visualization.arrayToDataTable(ratio),
+             options: {
+                 legend: 'top',
+                 colors: chartColors,
+                 curveType: 'function',
+                 animation: {
+                     startup: true,
+                     duration: 440,
+                     easing: 'inAndOut'
+                 },
+                 backgroundColor: {
+                     strokeWidth: 0
+                 },
+                 hAxis: {
+                     gridlines: {
+                         color: 'transparent'
+                     },
+                     format: "####"
+                 },
+                 vAxis: {
+                     gridlines: {
+                         color: 'transparent'
+                     },
+                     format: "short"
+                 },
+             }
+         });
+         wrapper.draw();
+     }
+    </script>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6 text-left">
+            <div class="panel hidden-lg latest-news">
+                <h4 class="panelheaders" style="border-radius: 4px 4px 0px 0px">Latest News</h4>
+                <div class="panel-body"></div>
+            </div>
+            <div class="panel visible-lg panel-front latest-news">
+                <h3 class="panelheaders" style="border-radius: 4px 4px 0px 0px">Latest News</h3>
+                <div class="panel-body"></div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="panel panel-front">
+                <h3 class="panelheaders">Technical Framework</h3>
+                <div class="panel-body">
+                    <p>Read the technical framework which underpins the publication of datasets on the portal</p>
+                </div>
+                <div class="panel-footer">
+                    <a class="btn btn-xl green" href="/technical-framework">Read more</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="panel panel-front">
+                <h3 class="panelheaders">Public Sector Information</h3>
+                <div class="panel-body">
+                    <p>Access documentation regarding the re-use of Public Sector Information in Ireland.</p>
+                </div>
+                <div class="panel-footer">
+                    <a class="btn btn-xl yellow" href="/psi">Read More</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel panel-front panel-front-no-fixed-height">
+                <div class="panel-body panel-front-body-no-fixed-height">
+                    <div class="col-md-8">
+                        <div class="embed-responsive embed-responsive-16by9">
+                            <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/cIGlt4Y9vVc" allowfullscreen></iframe>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <p>Greater use and re-use of open data has many potential benefits including assisting public administrations to work more efficiently and with greater transparency. There are follow on benefits to citizens, business and the economy in terms of access to information, encouragement of innovation and economic activity.</p>
+<p>This short video released by the European Data Portal explains what open (government) data is, its potential benefits and how to access the European Data Portal. The European Data Portal harvests data from national portals including <a href="/">data.gov.ie</a></p>
+<p>Source: <a href="https://www.europeandataportal.eu">European Data Portal (CC BY 3.0)</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+ function timeSince(date) {
+     var seconds = Math.floor((new Date() - date) / 1000);
+
+     var interval = Math.floor(seconds / 31536000);
+
+     if (interval > 1) {
+         return interval + " years";
+     }
+     interval = Math.floor(seconds / 2592000);
+     if (interval > 1) {
+         return interval + " months";
+     }
+     interval = Math.floor(seconds / 86400);
+     if (interval > 1) {
+         return interval + " days";
+     }
+     interval = Math.floor(seconds / 3600);
+     if (interval > 1) {
+         return interval + " hours";
+     }
+     interval = Math.floor(seconds / 60);
+     if (interval > 1) {
+         return interval + " minutes";
+     }
+     return Math.floor(seconds) + " seconds";
+ }
+
+ String.prototype.trunc = String.prototype.trunc ||
+                          function(n){
+                              return (this.length > n) ? this.substr(0,n-1)+'&hellip;' : this;
+                          };
+
+ var itemsToShow = 3;
+ var itemsShown = 0;
+
+ $.get('/rss.xml', function (data) {
+     var items = $(data).find('item');
+     for (var i = 0; i < items.length; i++){
+         if (itemsShown == itemsToShow) return;
+         var item = items[i];
+         var title = $(items[i]).find('title')[0];
+         var link = $(items[i]).find('link')[0];
+         if ($(link).text().indexOf('content') == -1) continue;
+         var creator = $(items[i]).find('creator')[0];
+         if (!creator) creator = $(items[i]).find('dc\\:creator')[0];
+         var pubDate = ($(items[i]).find('pubDate')[0])
+         pubDate = timeSince(Date.parse($(pubDate).text()));
+
+         var postTitleHtml = '<div class="post-title col-md-12"><h3 class="node-title"><a href="' + $(link).text() + '">' + $(title).text().trunc(50) + '</a></h3></div>';
+         var postMetaHtml = '<div class="post-meta col-md-12"><span>Submitted by <a href="/users/'+$(creator).text()+'" title="View user profile." class="username">'+$(creator).text()+' </a>'+ pubDate +' ago</span></div>';
+
+         var hrHtml = (itemsShown + 1 != itemsToShow) ? '<hr>' : '';
+         $(".latest-news .panel-body").append('<div class="row post">'+postTitleHtml+postMetaHtml+'</div>' + hrHtml);
+         itemsShown++;
+     }
+
+ }, 'xml');
+</script>
+
+<style>
+ .panel-front-no-fixed-height {
+     height: auto;
+ }
+ .panel-front-body-no-fixed-height {
+     height: auto !important;
+ }
+ .embed-responsive {
+     position: relative;
+     display: block;
+     height: 0;
+     padding: 0;
+     overflow: hidden;
+ }
+ .embed-responsive .embed-responsive-item,
+ .embed-responsive iframe,
+ .embed-responsive embed,
+ .embed-responsive object,
+ .embed-responsive video {
+     position: absolute;
+     top: 0;
+     left: 0;
+     bottom: 0;
+     height: 100%;
+     width: 100%;
+     border: 0;
+ }
+ .embed-responsive-16by9 {
+     padding-bottom: 56.25%;
+ }
+ .embed-responsive-4by3 {
+     padding-bottom: 75%;
+ }
+</style>
+{% endblock %}

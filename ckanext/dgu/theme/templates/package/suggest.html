@@ -1,0 +1,173 @@
+﻿{% extends "page.html" %}
+
+{% block title %}Suggest a Dataset{% endblock %}
+
+{% block breadcrumb_content %}
+  {{ h.build_nav('dgu_search', _('Datasets')) }}
+  {{ h.build_nav('dataset_suggest', 'Suggest Dataset')}}
+{% endblock %}
+
+{% block optional_head %}
+  <script type="text/javascript">
+    var form_errors = {};
+    var publishers = {};
+    window.DGU_RESOURCE_FORMATS = {{h.get_resource_formats()|safe}};
+  </script>
+  <script type="text/javascript" src="/scripts/dgu-package-form.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="/css/jquery-ui-1.9.2.custom.datepicker.min.css" />
+  <script type="text/javascript" src="/scripts/vendor/jquery-ui-1.9.2.custom.datepicker.min.js"></script>
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+  <script>
+  document.addEventListener('DOMContentLoaded', function (evt) {
+    document.getElementById('submit-button').addEventListener('click', function (evt) {
+      evt.preventDefault();
+
+      var isValid = true;
+      var required = ['title', 'desc', 'is_published', 'dataset_format'];
+      var formVal = {};
+      var formKey = {
+        title: 'dataset_title',
+        desc: 'dataset_desc',
+        is_published: 'is_published',
+        dataset_loc: 'dataset_loc',
+        dataset_format: 'dataset_format',
+        dataset_use: 'dataset_use'
+      };
+
+      /* VALIDATION */
+      for (var prop in formKey) {
+        if (prop === 'is_published') {
+          //checkbox
+          formVal[prop] = document.getElementById(formKey[prop]).checked;
+        } else {
+          formVal[prop] = document.getElementById(formKey[prop]).value;
+        }
+        var elem = $('#'+ formKey[prop]).parent();
+
+        if (formVal[prop] !== '') {
+          elem.removeClass('has-error has-warning');
+          elem.addClass('has-success');
+        } else if (required.indexOf(prop) === -1) {
+          //optional
+          elem.addClass('has-warning');
+        } else {
+          //required
+          isValid = false;
+          elem.addClass('has-error');
+          $('#form-submit-status').fadeIn();
+        }
+      }
+      captcha_code = grecaptcha.getResponse();
+      if (captcha_code === '') { captcha_code = false; }
+
+      if (isValid) {
+        if (!captcha_code) {
+          onPostError("Capatcha failure", "Capatcha failure");
+          return false;
+        }
+        $.post('/dataset/suggest-issue', {
+          'g-recaptcha-response': captcha_code,
+          'data': encodeURIComponent(JSON.stringify(formVal))
+        }).done(function (res) {
+          if (typeof res === 'string') {
+            try {
+              res = JSON.parse(res)
+            } catch (err) {
+              onPostError(res, err.message);
+              return false
+            }
+          }
+          if (res.status >= 200 && res.status < 300) {
+            //github success responds with 201
+            //animate transition, close form submission and display message
+            $('#section-name-fields').slideUp(600);
+            $('#submit-button').fadeOut();
+            $('#form-submit-status').fadeOut();
+            $('#form-success-message').fadeIn();
+            } else {
+            onPostError(res, "Bad server response");
+          }
+        }).fail(onPostError);
+        return true;
+      } else {
+        return false;
+      }
+
+      function onPostError (res, msg) {
+        if (msg === undefined) {
+          msg = 'Unable to submit form, please try again.';
+        }
+        $('#form-submit-status').text(msg);
+        $('#form-submit-status').fadeIn();
+        console.log("form submisison error: ", res);
+      }
+    });
+  });
+  </script>
+{% endblock %}
+
+{% block primary_content_inner %}
+<article class="page-standalone" about="/dataset/suggest">
+  <header>
+    <h1>Suggest a Dataset</h1>
+  </header>
+  <div class="tab-content">
+    <fieldset class="tab-pane boxed whitebox fade active in" id="section-name-fields">
+      <div>
+        <p>The concept of Open Data is about making data held by public bodies available and easily accessible online for reuse and redistribution. Open Data forms a core element of the Open Government Partnership national action plan which was published in July 2014 and significant work has been carried out to advance the Open Data Initiative since then.</p>
+        <p>As public bodies have progressed in areas like eGovernment and data analytics, the potential of data and, in particular, open data to help deliver economic, social and democratic benefits has become clearer.</p>
+        <p>Engagement with all interested stakeholders is a core element of Ireland’s approach to Open Data. As part of this engagement process, the Department of Public Expenditure and Reform welcomes your suggestions for datasets that you would like to have released as Open Data.</p>
+      </div>
+      <hr/>
+      <div class="form-group">
+        <label for="dataset_title" class="js-tooltip tooltip-paragraph" data-placement="right" title="">
+          Dataset Title:
+        </label>
+        <input class="form-control field_req js-title input-xlarge" id="dataset_title" name="dataset_title" type="text" value="">
+      </div>
+      <div class="form-group">
+        <label for="dataset_desc" class="js-tooltip tooltip-paragraph" data-placement="right" title="" data-original-title="Please add a description of the data set.  What does the data contain/show?  Why was it produced?">
+          Dataset Description: <i class="icon-info-sign"></i>
+        </label>
+        <textarea class="form-control field_req" cols="260" id="dataset_desc" name="dataset_desc" rows="4"></textarea>
+      </div>
+      <div class="checkbox">
+        <label>
+          <input type="checkbox" id="is_published" name="is_published">
+          <strong>Is the dataset currently published online?</strong>
+        </label>
+      </div>
+      <div class="form-group">
+        <label for="dataset_loc">
+          <span class="js-tooltip" data-placement="right" title="" data-original-title="">
+            If yes, please enter the dataset's current URL:
+          </span>
+        </label>
+        <div class="input-group">
+          <span class="input-group-addon">http://</span><input class="field_req js-url-input form-control" id="dataset_loc" name="dataset_loc" maxlength="100" type="text" value="">
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="dataset_format" class="js-tooltip tooltip-paragraph" data-placement="right" title="">
+          In what format would you like the dataset published?
+        </label>
+        <input class="form-control field_req js-title input-xlarge" id="dataset_format" name="dataset_format" type="text" value="">
+      </div>
+      <div class="form-group">
+        <label for="dataset_use" class="js-tooltip tooltip-paragraph" data-placement="right" title="">
+          Please indicate the potential use of the dataset: (optional)
+        </label>
+        <input class="form-control field_req js-title input-xlarge" id="dataset_use" name="dataset_use" type="text" value="">
+      </div>
+
+      <div class="g-recaptcha" data-sitekey="6LcXRQoTAAAAAO_W8pQo0B8eaT2Ndk6QzPr3-B_h" style="margin-bottom:12px;"></div>
+      <input id="submit-button" class="btn btn-primary" name="save" type="submit" value="Submit">
+      <span id="form-submit-status" class="help-block">Please complete missing form fields.</span>
+    </fieldset>
+    <div id="form-success-message" class="help-block">
+      <p>Thank you for submitting a dataset suggestion.</p>
+    </div>
+    <div class="clearfix">&nbsp;</div>
+  </div>
+</article>
+{% endblock %}

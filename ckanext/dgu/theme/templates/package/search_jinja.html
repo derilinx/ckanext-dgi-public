@@ -1,0 +1,80 @@
+{% extends "page.html" %}
+
+{% import "_dgu_jinja_util.html" as m with context %}
+
+{% block title %}Datasets{% endblock %}
+
+{% block breadcrumb_content %}
+    {{ h.build_nav('dgu_search', _('Datasets')) }}
+{% endblock %}
+
+{% block secondary_content %}
+    <div class="sidebar-search">
+        {{ m.search_form(mini=true) }}
+    </div>
+
+    {% if c.page_item_count %}
+        {{m.facet_filters()}}
+    {% endif %}
+{% endblock %}
+
+{% block primary_content %}
+    <section class="module">
+        <div class="module-content">
+            <a href="#" class="visible-sm visible-xs btn btn-primary btn-sm show-facets">Show Search Facets &raquo;</a>
+            {% block form %}
+                <form class="form-inline pull-right" id="search-sort-by" action="#search-sort-by">
+                    {% macro sort_option(text, value, selected, disabled=False) %}
+                        <option value="{{value}}" {% if selected %} selected="selected"{% endif %}{% if disabled %} disabled="disabled"{% endif %}>{{text}}</option>
+                    {% endmacro %}
+                    <label>Sort by:</label>
+                    <select name="sort" class="form-control" style="display:inline-block;">
+                        <!-- Can optimise this bit of the template, particularly results_sort_by -->
+                        {{sort_option('Relevance', '', 'rank' in h.results_sort_by(), h.relevancy_disabled())}}
+                        {{sort_option('Popularity', 'popularity desc', 'popularity' in h.results_sort_by())}}
+                        {{sort_option('Title', 'title_string asc', 'title_string' in h.results_sort_by())}}
+                        {{sort_option('Last Updated', 'metadata_modified desc', 'metadata_modified' in h.results_sort_by())}}
+                        {{sort_option('Location', 'spatial desc', 'spatial' in h.results_sort_by(), h.sort_by_location_disabled())}}
+                    </select>
+                    <button type="submit" class="btn btn-default js-hide">Go</button>
+                    {% if request.params.get('ext_bbox', '') %}
+                        <input type="hidden" id="ext_bbox" name="ext_bbox" value="{{request.params.get('ext_bbox', '')}}" />
+                    {% endif %}
+                    {% if request.params.get('q', '') %}
+                        <input type="hidden" name="q" value="{{request.params.get('q', '')}}" />
+                    {% endif %}
+                    {% if c.fields %}
+                        {% for k,v in c.fields %}
+                            <input type="hidden" name="{{k}}" value="{{v}}"/>
+                        {% endfor %}
+                    {% endif %}
+
+                    <a class="feed-icon" href="{{ h.url(controller='feed', action='custom') }}?{{ c.search_url_params }}">
+                        <i class="icon-rss-sign"></i>
+                    </a>
+                </form>
+            {% endblock %}
+
+            {% if not c.query_error %}
+                <h1>{{ "{:,}".format(c.page.item_count) if c.page not in (None, '') else c.package_count or 0}} results</h1>
+            {% else %}
+                <h1>Search Error</h1>
+            {% endif %}
+
+            {% block package_search_results_list %}
+                {{ m.package_list_from_dict(c.page.items) }}
+            {% endblock %}
+        </div>
+
+        {% block page_pagination %}
+            {{ c.page.pager(q=c.q) }}
+
+
+            <script>
+             $(document).ready(function () {
+                 $("div.pagination").find("ul").addClass("pagination");
+             });
+            </script>
+        {% endblock %}
+    </section>
+{% endblock %}

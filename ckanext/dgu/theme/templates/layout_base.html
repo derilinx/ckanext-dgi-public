@@ -1,0 +1,314 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+          "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!--[if IE 8 ]>    <html class="no-js ie8" lang="en"
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:i18n="http://genshi.edgewall.org/i18n"
+    xmlns:py="http://genshi.edgewall.org/"
+    xmlns:xi="http://www.w3.org/2001/XInclude"
+    > <![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--> <html class="no-js" lang="en"
+                                      xmlns="http://www.w3.org/1999/xhtml"
+                                      xmlns:i18n="http://genshi.edgewall.org/i18n"
+                                      xmlns:py="http://genshi.edgewall.org/"
+                                      xmlns:xi="http://www.w3.org/2001/XInclude"
+                                > <!--<![endif]-->
+    <xi:include href="_util.html" />
+    <xi:include href="_dgu_util.html" />
+    <head>
+        <py:if test="h.asbool(config.get('dgu.chartbeat_enabled', 'false'))">
+            <!-- Chartbeat tracking: Page-load start time -->
+            <script type="text/javascript">var _sf_startpt=(new Date()).getTime()</script>
+        </py:if>
+        <!--! IE=edge tells IE8 not to be tempted to use IE7 compatibility/quirks modes.
+             chrome=IE7 tells IE7 to use the Chrome Frame if available - good for Flex machines.
+             Should be the first meta tag in the head. -->
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=IE7" />
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+        <title>data.gov.ie — Ireland's open data portal</title>
+        <meta name="description" content="Ireland's open data portal. Promoting innovation and transparency through the publication of Irish Public Sector data in open, free and reusable formats." />
+        <meta name="author" content="" />
+
+        <meta property="og:url" content="http://data.gov.ie" />
+        <meta property="og:title" content="data.gov.ie — Ireland's open data portal" />
+        <meta property="og:description" content="Ireland's open data portal. Promoting innovation and transparency through the publication of Irish Public Sector data in open, free and reusable formats." />
+        <meta property="og:image" content="http://data.gov.ie/assets/img/dgi-logo.png" />
+
+        <link rel="shortcut icon" href="/assets/img/favicon.ico" />
+        <link rel="canonical" href="http://data.gov.ie" />
+
+        <py:choose>
+            <py:when test="defined('optional_feed')">
+                ${optional_feed()}
+            </py:when>
+            <py:otherwise>
+                <link rel="alternate" type="application/atom+xml" title="${g.site_title} - Recent Revision History" href="${h.url_for(controller='revision', action='list', format='atom', days=1)}" />
+            </py:otherwise>
+        </py:choose>
+
+        <link rel="stylesheet" href="/assets/css/datagovuk.min.css?${h.get_shared_assets_timestamp()}" />
+        <link rel="stylesheet" href="${h.url_for_static('/css/dgu-ckan.min.css')}?${h.ckan_asset_timestamp()}" />
+
+        <!-- Python-generated JS values -->
+        <script type="text/javascript">
+         CKAN = {};
+         // later use will add offsets with leading '/' so ensure no trailing slash
+         CKAN.SITE_URL = '${h.url('/')}'.replace(/\/$/, '');
+         CKAN.SITE_URL_NO_LOCALE = '${h.url('/', locale='default')}'.replace(/\/$/, '');
+         CKAN.USER = '${c.user}';
+        </script>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+        <script>
+         //<![CDATA[
+         window.jQuery || document.write('<script src="/assets/js/jquery-1.8.3.min.js"><\/script>')
+         // ]]>
+        </script>
+
+        <!-- Vendor scripts -->
+        <script type="text/javascript" src="/assets/js/vendor.min.js?${h.get_shared_assets_timestamp()}"></script>
+        <!-- CKAN DGU scripts -->
+        <script type="text/javascript" src="/assets/js/dgu-shared.min.js?${h.ckan_asset_timestamp()}"></script>
+        <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-ckan-application.min.js')}?${h.ckan_asset_timestamp()}"></script>
+
+        <py:if test="defined('optional_head')">
+            ${optional_head()}
+        </py:if>
+
+        <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+        <!--[if lt IE 9]>
+            <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+
+        <!-- font-awesome ie7 shim -->
+        <!--[if IE 7]>
+            <link rel="stylesheet" media="all" href="/assets/css/font-awesome-ie7.min.css" />
+        <![endif]-->
+
+        <!--[if lt IE 9]>
+            <link href="/assets/css/dgu-ie7.css" rel="stylesheet" />
+        <![endif]-->
+
+        ${h.literal(getattr(g, 'template_head_end', ''))}
+    </head>
+    ${h.top_level_init()}
+
+    <body class="action-${request.environ.get('pylons.routes_dict', {}).get('action')}
+                 controller-${request.environ.get('pylons.routes_dict', {}).get('controller').split(':')[0].split('.')[-1]}
+                 ${request.environ.get('pylons.routes_dict', {}).get('action')}
+                 ${request.environ.get('pylons.routes_dict', {}).get('controller').split(':')[-1]}
+                 ${if_(defined('sidebar'),'with-sidebar','no-sidebar')}
+                 "
+          id="${(defined('body_id') and body_id()) or ''}"
+          py:with="breakout = defined('break_out_page') and break_out_page"
+    >
+        <div py:if="bool(c.userobj)" id="toolbar" class="toolbar overlay-displace-top clearfix toolbar-processed">
+            <div class="toolbar-menu clearfix">
+                <ul id="toolbar-home">
+                    <li class="home first last">
+                        <a href="/" title="Home"><span class="home-link">Home</span></a>
+                    </li>
+                </ul>
+                <ul id="toolbar-user">
+                    <li class="account first">
+                        <a href="/user" title="User account">Hello <strong>${c.userobj.display_name}</strong></a>
+                    </li>
+                    <li class="logout last">
+                        <a href="${if_('dgu_drupal_auth' in config['ckan.plugins'],'/user/logout',h.url_for('/data/user/logout'))}">Log out</a>
+                    </li>
+                </ul>
+                <ul id="toolbar-menu">
+                    <li class="menu-211 path-admin-workbench first last">
+                        <a href="/admin/workbench" id="toolbar-link-admin-workbench" title="My Workbench area">
+                            <span class="icon"></span>
+                            Manage my content
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="toolbar-drawer clearfix">
+            </div>
+        </div>
+        <div id="blackbar" class="${if_(h.check_access('package_create'),'with-publisher','without-publisher')}">
+            <nav id="dgu-nav">
+                <div class="container">
+                    <div class="navbar-header">
+                        <button style="background-color: #5bc0de; color: white;" type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                            <span class="sr-only">Toggle navigation</span>
+                            <span class="icon-bar" style="background-color: white"></span>
+                            <span class="icon-bar" style="background-color: white"></span>
+                            <span class="icon-bar" style="background-color: white"></span>
+                        </button>
+                        <a class="brand" href="/" rel="home"></a>
+                    </div>
+
+                    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                        <div class="navbar-right">
+                            <ul class="nav navbar-nav" style="padding-top: 4px;">
+                                <li class="hidden-md"><a href="/">Home</a></li>
+                                <li><a href="/data/search">Datasets</a></li>
+                                <li><a href="/publisher">Publishers</a></li>
+                                <li><a href="/dataset/suggest">Suggest Data</a></li>
+                                <li><a href="/showcase">Showcases</a></li>
+                                <li><a href="/contact">Contact</a></li>
+                                <li><a href="/about">About</a></li>
+                                <li class="dropdown">
+                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">More <span class="caret"></span></a>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="/stats">Stats</a></li>
+                                        <li role="separator" class="divider"></li>
+                                        <li><a href="/blog">Latest News</a></li>
+                                        <li><a href="/resources">Resources</a></li>
+                                        <li><a href="/guide-for-publishers">Guide for Publishers </a></li>
+                                        <li><a href="/technical-framework">Open Data Technical Framework</a></li>
+                                        <li><a href="/strategy">Open Data Foundation Document</a></li>
+                                        <li><a href="/license">Open Data Licence </a></li>
+                                        <li><a href="/psi">Public Sector Information</a></li>
+                                        <li role="separator" class="divider"></li>
+                                        <li><a href="/developers">Developers</a></li>
+                                        <li role="separator" class="divider"></li>
+                                        <li><a href="http://audit.data.gov.ie">Data Audit Tool</a></li>
+                                        <py:if test="bool(c.userobj)">
+                                            <li><a href="/user/logout">Log out</a></li>
+                                        </py:if>
+                                        <py:if test="not bool(c.userobj)">
+                                            <li><a href="/user">Login</a></li>
+                                        </py:if>
+                                    </ul>
+                                </li>
+                                <py:if test="bool(c.user) and h.check_access('package_create')">
+                                    <li class="dropdown">
+                                        <a class="dropdown-toggle" data-toggle="dropdown" role="button" href="#">Tools <span class="caret"></span></a>
+                                        <ul class="dropdown-menu dgu-user-dropdown" role="menu" aria-labelledby="dLabel">
+                                            <li role="presentation" class="dropdown-header">Tools</li>
+                                            <li><a href="${h.url_for('dataset_new')}">Add a Dataset</a></li>
+                                            <li><a href="${h.url_for('ckanext_openstandard_new')}">Add an Open Standard</a></li>
+                                            <py:if test="c.userobj.sysadmin">
+                                                <li><a href="${ h.url_for('publisher_new') }">Add a Publisher</a></li>
+                                            </py:if>
+                                        </ul>
+                                    </li>
+                                </py:if>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+
+        <div id="pre-content">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12">
+                        <ul id="breadcrumbs">
+                            <li><a href="/"><i class="icon-home"></i></a></li>
+                            <breadcrumbs>
+                            </breadcrumbs>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+  <div id="main-content">
+    <div class="container">
+      <div py:if="defined('sidebar')" class="sidebar">
+        ${sidebar()}
+      </div>
+      <div class="content">
+        <content>
+      <!-- Content goes here -->
+        </content>
+      </div>
+    </div>
+  </div><!-- /main-content -->
+
+        <div class="footer">
+            <div id="footer-lower" class="row" style="padding-top: 12px;">
+                <div class="col-lg-12">
+                    <div class="container contact-details">
+                        <div class="col-md-4 social text-center">
+                            <ul>
+                                <li>
+                                    <a href="http://twitter.com/GovDataIE">
+                                        <p> <span class="icon-twitter"></span> @GovDataIE </p>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="http://twitter.com/IRLDeptPER">
+                                        <p> <span class="icon-twitter"></span> @IRLDeptPER </p>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="mailto:opendata@per.gov.ie">
+                                        <p> <span class="icon-envelope"></span> opendata@per.gov.ie </p>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="tel:35316767571">
+                                        <p> <span class="icon-phone"></span> +353 1 6767571 </p>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <address>
+                                Open Data Unit<br/>
+                                Dept of Public Expenditure &amp; Reform,<br/>
+                                7-9 Merrion Row,<br/>
+                                Dublin 2, Ireland.
+                            </address>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <p>Powered by <a href="http://ckan.org"><img id="ckan-logo" src="/assets/img/ckan-logo.png" alt="CKAN logo"/></a></p>
+                            <p>Site by <a href="https://derilinx.com">Derilinx</a></p>
+                            <p><a href="http://per.gov.ie">Department of Public Expenditure and Reform</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--google analytics-->
+        <script type="text/javascript">
+         (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+             (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                                  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+         })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+         ga('create', 'UA-59685031-1', 'auto');
+         ga('set', 'anonymizeIp', true);
+         ga('send', 'pageview');
+        </script>
+
+        <py:if test="h.asbool(config.get('ckan.tracking_enabled', 'false'))">
+            <script type="text/javascript">
+             $(function (){
+                 // Tracking
+                 var url = location.pathname;
+                 // remove any site root from url
+                 url = url.substring(CKAN.SITE_URL.length, url.length - 1);
+                 $.ajax({url : CKAN.SITE_URL_NO_LOCALE + '/_tracking',
+                         type : 'POST',
+                         data : {url:url, type:'page'},
+                         timeout : 300 });
+                 $('a.resource-url-analytics').click(function (e){
+                     var url = $(e.target).closest('a').attr('href');
+                     $.ajax({url : CKAN.SITE_URL_NO_LOCALE + '/_tracking',
+                             data : {url:url, type:'resource'},
+                             type : 'POST',
+                             complete : function () {location.href = url;},
+                             timeout : 30});
+                     e.preventDefault();
+                 });
+             });
+            </script>
+        </py:if>
+
+        <py:if test="defined('optional_footer')">
+            ${optional_footer()}
+        </py:if>
+
+        ${h.literal(getattr(g, 'template_footer_end', ''))}
+    </body>
+</html>

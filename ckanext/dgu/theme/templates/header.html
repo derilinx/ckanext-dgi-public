@@ -1,0 +1,95 @@
+{% if c.userobj %}
+    <div id="toolbar" class="toolbar overlay-displace-top clearfix toolbar-processed">
+        <div class="toolbar-menu clearfix">
+            <ul id="toolbar-home">
+                <li class="home first last">
+                    <a href="/" title="Home"><span class="home-link">Home</span></a>
+                </li>
+            </ul>
+            <ul id="toolbar-user">
+                <li class="account first">
+                    <a href="/user" title="User account">Hello <strong>{{c.userobj.display_name}}</strong></a>
+                </li>
+                <li class="logout last">
+                    <a href="{{ '/user/logout' if h.is_plugin_enabled('dgu_drupal_auth') else h.url_for('/data/user/logout') }}">Log out</a>
+                </li>
+            </ul>
+            <ul id="toolbar-menu">
+                <li class="menu-211 path-admin-workbench first last">
+                    <a href="/admin/workbench" id="toolbar-link-admin-workbench" title="My Workbench area">
+                        <span class="icon"></span>
+                        Manage my content
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div class="toolbar-drawer clearfix">
+        </div>
+    </div>
+{% endif %}
+
+<div id="blackbar" class="{{ 'with-publisher' if h.check_access('package_create') else 'without-publisher' }}">
+    <nav id="dgu-nav">
+        <div class="container">
+            <div class="navbar-header">
+                <button style="background-color: #5bc0de; color: white;" type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar" style="background-color: white"></span>
+                    <span class="icon-bar" style="background-color: white"></span>
+                    <span class="icon-bar" style="background-color: white"></span>
+                </button>
+                <a class="brand" href="/" rel="home"></a>
+            </div>
+
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <div class="navbar-right">
+                    <ul class="nav navbar-nav" style="padding-top: 4px;">
+                        <li class="hidden-md"><a href="/">Home</a></li>
+                        <li><a href="/data/search">Datasets</a></li>
+                        <li><a href="/publisher">Publishers</a></li>
+                        <li><a href="/dataset/suggest">Suggest Data</a></li>
+                        <li><a href="/showcase">Showcases</a></li>
+                        <li><a href="/contact">Contact</a></li>
+                        <li><a href="/about">About</a></li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">More <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="/stats">Stats</a></li>
+                                <li role="separator" class="divider"></li>
+                                <li><a href="/blog">Latest News</a></li>
+                                <li><a href="/resources">Resources</a></li>
+                                <li><a href="/guide-for-publishers">Guide for Publishers </a></li>
+                                <li><a href="/technical-framework">Open Data Technical Framework</a></li>
+                                <li><a href="/strategy">Open Data Foundation Document</a></li>
+                                <li><a href="/license">Open Data Licence </a></li>
+                                <li><a href="/psi">Public Sector Information</a></li>
+                                <li role="separator" class="divider"></li>
+                                <li><a href="/developers">Developers</a></li>
+                                <li role="separator" class="divider"></li>
+                                <li><a href="http://audit.data.gov.ie">Data Audit Tool</a></li>
+                                {% if c.userobj %}
+                                    <li><a href="{{ '/user/logout' if h.is_plugin_enabled('dgu_drupal_auth') else h.url_for('/data/user/logout') }}">Log out</a></li>
+                                {% else %}
+                                    <li><a href="/user">Login</a></li>
+                                {% endif %}
+                            </ul>
+                        </li>
+                        {% if c.userobj and h.check_access('package_create') %}
+                            <li class="dropdown">
+                                <a class="dropdown-toggle" data-toggle="dropdown" role="button" href="#">Tools <span class="caret"></span></a>
+                                <ul class="dropdown-menu dgu-user-dropdown" role="menu" aria-labelledby="dLabel">
+                                    <li role="presentation" class="dropdown-header">Tools</li>
+                                    <li><a href="{{h.url_for('dataset_new')}}">Add a Dataset</a></li>
+                                    <li><a href="{{h.url_for('ckanext_openstandard_new')}}">Add an Open Standard</a></li>
+                                    {% if c.userobj.sysadmin %}
+                                        <li><a href="{{ h.url_for('publisher_new') }}">Add a Publisher</a></li>
+                                    {% endif %}
+                                </ul>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+</div>

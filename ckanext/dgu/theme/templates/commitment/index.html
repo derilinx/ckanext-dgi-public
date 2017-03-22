@@ -1,0 +1,42 @@
+{% extends "page.html" %}
+
+{% block title %}Reports - Data publication commitments{% endblock %}
+
+{% block breadcrumb_content %}
+  {{ h.build_nav('dgu_search', _('Datasets')) }}
+  {{ h.build_nav('commitments', _('Data Publication Commitments')) }}
+{% endblock %}
+
+
+{% block primary_content_inner %}
+
+    <h1>Data publication commitments</h1>
+
+
+    <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%;">
+        <tr>
+          <th>Publisher</th>
+          <th>Commitments made</th>
+          <th>Commitments reported</th>
+        </tr>
+        {% for publisher in c.publishers %}
+          {% with %}
+            {% set (c,m,) = h.commitments_count_and_met(publisher.name, c.commitments) %}
+          <tr>
+              <td><a href="{{h.url_for('commitments_publisher', id=publisher.name)}}">{{publisher.title}}</a></td>
+              <td>{{c}}</td>
+              <td>{{m}}</td>
+          </tr>
+          {% endwith %}
+        {% endfor %}
+        {% with %}
+          {% set (c,m,) = h.commitments_count_and_met_totals(c.commitments) %}
+        <tr>
+          <th>Total</th>
+          <th>{{c}}</th>
+          <th>{{m}}</th>
+        </tr>
+        {% endwith %}
+    </table>
+
+{% endblock %}

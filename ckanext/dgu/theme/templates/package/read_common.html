@@ -1,0 +1,269 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+      xmlns:i18n="http://genshi.edgewall.org/i18n"
+      xmlns:xi="http://www.w3.org/2001/XInclude"
+      xmlns:foaf="http://xmlns.com/foaf/0.1/"
+      xmlns:owl="http://www.w3.org/2002/07/owl#"
+      xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+      xmlns:dc="http://purl.org/dc/terms/"
+      xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+      xmlns:dcat="http://www.w3.org/ns/dcat#"
+      typeof="dcat:Dataset"
+      about=""
+      py:strip="">
+
+    <py:def function="page_title">${c.pkg_dict.get('title', c.pkg_dict['name'])} - Datasets</py:def>
+
+    <xi:include href="../inventory/inventory_util.html" />
+
+    <div py:match="content" class="package" py:with="is_location_data = h.is_location_data(c.pkg_dict)">
+        <div class="row">
+            <div class="col-md-9">
+            <h1>${c.pkg_dict.get('title', c.pkg_dict['name'])} <span class="unpublished-text" py:if="h.is_unpublished_item(c.pkg_dict)">(Unpublished)</span></h1>
+            </div>
+
+            <div class="col-md-3">
+            <div class="dropdown-buttons">
+            <py:with vars="
+                                   render_enquiries=not h.is_unpublished_item(c.pkg_dict);
+                                   render_foi=h.have_foi_contact_details(c.pkg, dict(c.pkg_extras));
+                                   ">
+            <span class="dropdown" py:if="render_enquiries or render_foi">
+            <a href="#" class="js-tooltip dropdown-button" data-placement="top" data-delay="300" data-toggle="dropdown" title="" data-original-title="Contact&nbsp;Details">
+            <i class="icon-envelope icon-2x"></i>
+            <div class="dropdown-chevron"></div>
+                            </a>
+            <div class="panel panel-default dropdown-menu" role="menu" aria-labelledby="dLabel">
+            <div class="panel-heading">Contacts</div>
+            <div class="panel-body">
+            <py:if test="render_enquiries">
+            <b>Enquiries:</b>
+            <ul style="margin-bottom: 5px;">
+            ${h.get_contact_name(c.pkg, dict(c.pkg_extras))}
+            ${contact_details(*h.get_contact_details(c.pkg, dict(c.pkg_extras)))}
+                                        </ul>
+                                    </py:if>
+                                </div>
+                            </div>
+                        </span>
+                    </py:with>
+            <py:if test="c.user"> <!-- #1272 Only viewable if you log in -->
+            <a class="js-tooltip dropdown-button history-link" data-placement="top" title="" data-delay="300" data-original-title="History&nbsp;of&nbsp;changes" href="${h.url_for(controller='package', action='history', id=c.pkg.name)}">
+            <i class="icon-time icon-2x"></i>
+                        </a>
+                    </py:if>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+            <div class="h1-subheading" py:with="
+                                                    all_licences = h.get_licenses(c.pkg);
+                                                    publisher = c.pkg_dict.get('organization')
+                                                    ">
+            <py:if test="publisher">
+            Published by
+            <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.pkg_dict.get('organization',{}).get('name',''))}">
+            ${c.pkg_dict.get('organization',{}).get('title','')}.
+                        </a>
+                    </py:if>
+            <py:if test="not publisher">
+            No publisher specified.
+                    </py:if>
+            &nbsp;
+            <span property="dc:rights">
+            <py:if test="len(all_licences)==0">
+            No licence specified.
+                        </py:if>
+            <py:if test="len(all_licences)!=0">
+            Licensed under
+                        </py:if>
+            <py:for each="i in range(len(all_licences))">
+            <py:with vars="
+                                           (license_text, url, isopen, isogl) = all_licences[i];
+                                           separator = if_(i==len(all_licences)-1,'.',' &amp; ')
+                                           ">
+            <py:if test="not isogl">
+            <a py:if="url" href="${url}" rel="dc:rights">${license_text}</a>
+            <span py:if="not url" rel="dc:rights"><em>&ldquo;${license_text}&rdquo;</em>${separator}</span>
+                                </py:if>
+                            </py:with>
+
+            <!--
+     &nbsp;
+     <py:if test="isopen == True">
+     <a href="http://opendefinition.org/okd/" title="This dataset satisfies the Open Definition.">
+     <img class="open-data" src="/images/open_data.png" alt="[Open Data]" />
+     </a>
+     </py:if>
+     <py:if test="isopen == False">
+     <span class="closed">${h.icon('lock')}</span>
+     </py:if>-->
+                        </py:for>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+            <div class="dataset-stars h1-subheading" style="margin-top: 0px;margin-bottom:12px;"
+                     py:with="stars,reason,last_updated=h.calculate_dataset_stars(c.pkg.id)">
+            Openness rating:
+            <span class="star&#45;rating">
+            <span class="tooltip">
+            <div class="star&#45;rating&#45;reason" py:if="reason">
+            <b>Reason: </b>${reason}
+                            </div>
+            <py:for each="i in range(5,0,&#45;1)">
+            <div class="star&#45;rating&#45;entry ${if_(i>stars,'fail')}">${h.mini_stars_and_caption(i)}</div>
+                            </py:for>
+            <div class="star&#45;rating&#45;last&#45;updated" py:if="last_updated">
+            <b>Score updated: </b>${h.render_datestamp(last_updated)}
+                            </div>
+                        </span>
+            <a href="http://lab.linkeddata.deri.ie/2010/star&#45;scheme&#45;by&#45;example/" target="_blank">
+            <py:for each="i in range(0,stars or 0)">
+            <i class="icon&#45;star"></i>
+                            </py:for>
+            <py:for each="i in range((stars or 0)+1,6)">
+            <i class="icon&#45;star&#45;empty"></i>
+                            </py:for>
+                        </a>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="h1-subheading pull-left dataset-theme theme-${h.get_primary_theme(c.pkg_dict) or 'none'}"
+                     style="padding:0px 0 !important; margin: 0; max-width: 200px">
+                    <div class="theme-name" style="text-align: left; padding-left: 0px;">${h.get_primary_theme(c.pkg_dict) or '(Uncategorised)'}</div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row"
+             py:with="
+                      can_update=h.check_access('package_update',{'id':c.pkg.id});
+                      can_delete=h.check_access('package_delete', {'id':c.pkg.id}) and not h.is_package_deleted(c.pkg);
+                      harvest_object=h.get_harvest_object(c.pkg);
+                      can_harvest=harvest_object and h.check_access('harvest_source_update',{'id':harvest_object.source.id});
+                      update_link=h.url_for(controller='package', action='edit', id=c.pkg.name) if not h.is_unpublished_item(c.pkg_dict) else h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='edit_item', id=c.pkg.name);
+                      dataset_is_from_ns_pubhub = h.dataset_is_from_ns_pubhub(c.pkg_dict);
+                      admin_mode = can_update or can_delete or can_harvest
+                      ">
+            <div class="${if_(admin_mode,'col-md-8','col-md-12')}">
+                <!-- Description -->
+                <p class="pre-notes" py:if="dict(c.pkg_extras).get('provider')">
+                    <b>Provider:</b> ${dict(c.pkg_extras).get('provider')}
+                </p>
+                <p class="pre-notes" py:if="is_location_data and dict(c.pkg_extras).get('responsible-party')">
+                    <b>Responsible Party:</b> ${dict(c.pkg_extras).get('responsible-party')}
+                </p>
+                <p class="pre-notes" py:if="h.is_unpublished_item(c.pkg_dict) and c.pkg.extras.get('publish-date') and not c.pkg.extras.get('publish-restricted', False)">
+                    <b>Publish date:</b> ${h.render_db_date(c.pkg.extras.get('publish-date'))}
+                </p>
+                <p class="pre-notes" py:if="c.is_an_official and c.pkg_dict['state']!='active'">
+                    <b>State:</b> ${c.pkg_dict['state']}
+                </p>
+                <!-- blank style tag avoids a bug in jquery.dotdotdot -->
+                <div class="notes" style="">
+                    <!-- <div class="dataset-theme theme-${h.get_primary_theme(c.pkg_dict) or 'none'}"> -->
+                    <!-- <div class="theme-name">${h.get_primary_theme(c.pkg_dict) or '(Uncategorised)'}</div> -->
+                    <!-- </div> -->
+                    <a
+                        class="dataset-optional-logo"
+                        href="http://www.statistics.gov.uk/hub/what-are-national-statistics-/index.html"
+                        py:if="dataset_is_from_ns_pubhub == 'ons' and dict(c.pkg_extras).get('national_statistic', '').lower() == 'yes'"
+                    >
+                        <img class="dataset-logo" src="/images/national_statistics.gif" />
+                    </a>
+                    <a
+                        class="dataset-optional-logo"
+                        href="/location"
+                        py:if="is_location_data"
+                    >
+                        <img src="/images/uk_location.gif" />
+                    </a>
+
+                    <div class="notes-inner">
+                        ${h.render_markdown(c.pkg_dict.get('notes',''))}
+                        <py:if test="h.is_unpublished_item(c.pkg_dict)" py:with="notes=c.pkg.extras.get('release-notes','').strip()">
+                            <strong py:if="notes">Release Notes:</strong>
+                            ${h.render_markdown(notes)}
+                        </py:if>
+                        <a href="#" class="notes-read-more"><i class="icon-double-angle-down"></i> Read More <i class="icon-double-angle-down"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4" py:if="admin_mode">
+                <div class="panel panel-info">
+                    <div class="panel-heading" style="font-weight: bold;">Administrator Tools</div>
+                    <div class="panel-body">
+                        <ul class="administrator-tools">
+                            <li py:if="can_update">
+                                <span class="wrap-icon"><i class="icon-edit"></i></span>
+                                <a href="${update_link}">Edit dataset properties &raquo;</a>
+                            </li>
+                            <li py:if="not can_update and harvest_object">
+                                <span class="wrap-icon"><i class="icon-edit"></i></span>
+                                <a href="#" style="pointer-events:none;">Edit not allowed (future harvests will overwrite manual changes)</a>
+                            </li>
+                            <li py:if="can_update and h.is_unpublished_item(c.pkg_dict)">
+                                <py:with vars="will_be_published,when=h.will_be_published(c.pkg_dict)">
+                                    <a href="${h.url_for(controller='ckanext.dgu.controllers.package:PackageController', action='edit', id=c.pkg.name)}">
+                                        <span class="wrap-icon"><i class="icon-flag"></i></span>
+                                        Convert to published dataset
+                                    </a>
+                                </py:with>
+                            </li>
+                            <li py:if="can_harvest">
+                                <span class="wrap-icon"><i class="icon-link"></i></span>
+                                <a href="${h.url_for('harvest_source', id=harvest_object.source.id)}">Harvester for this dataset &raquo;</a>
+                            </li>
+                            <li py:if="can_delete">
+                                <span class="wrap-icon"><i class="icon-trash"></i></span>
+                                <a href="${h.url_for(controller='ckanext.dgu.controllers.package:PackageController', action='delete', id=c.pkg.name)}">
+                                    ${if_(is_location_data,'Withdraw this dataset','Delete this dataset')} &raquo;
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Warn if unpublished -->
+        <div py:if="h.is_unpublished_item(c.pkg_dict)" class="panel panel-warning">
+            <div class="panel-heading">Unpublished Dataset</div>
+            <div class="panel-body">This is a record for data which is not published.</div>
+        </div>
+        <!-- Warn if deleted -->
+        <div py:if="c.pkg_dict.get('state') == 'deleted'" class="panel panel-warning">
+            <py:with vars="deleted=if_(is_location_data,'Withdrawn','Deleted')">
+                <div class="panel-heading">${deleted} Dataset</div>
+            </py:with>
+            <py:with vars="deleted=if_(is_location_data,'withdrawn','deleted')">
+                <div class="panel-body">This dataset is ${deleted}. Only administrators can view it in this state.</div>
+            </py:with>
+        </div>
+        ${package_content()}
+    </div>
+
+
+    <py:def function="optional_head">
+        <link rel="alternate" type="application/rdf+xml" href="${h.url_for(controller='package', action='read', id=c.pkg.name, format='rdf')}"/>
+        <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-package.min.js')}"></script>
+        <script type="text/javascript">
+         window.DATASET_ID = '${c.pkg_dict.get('id')}';
+        </script>
+        <py:if test="defined('package_optional_head')">
+            ${package_optional_head()}
+        </py:if>
+    </py:def>
+
+    <xi:include href="../layout_base.html" />
+</html>

@@ -1,0 +1,101 @@
+{% extends "page.html" %}
+
+{% import "inventory/inventory_util_jinja.html" as m with context %}
+
+{% block title %}{{c.group.display_name}}{% endblock %}
+
+<h1>
+  {% if h.check_access('group_update', {'id':c.group.id}) %}
+    <a href="{{h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='edit',id=c.group.name)}}" class="btn btn-info edit">Manage Unpublished Datasets</a>
+    <a class="btn btn-info edit" href="{{h.url_for('publisher_edit', id=c.group.name)}}">Edit</a>
+  {% endif %}
+    <a class="feed-icon" href="{{h.url(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.group['name'])}}">{{c.group.display_name}}</a>
+    {% if c.group_extras.get('abbreviation') %}
+      <span class="abbreviation">&nbsp;({{c.group_extras.get('abbreviation')}})</span>
+    {% endif %}
+    <a class="feed-icon" href="{{h.url(controller='feed', action='group', id=c.group['name'])}}" title="{{g.site_title}} - Datasets in group '{{c.group['title']}}'">
+      <img src="/images/rss.png" width="16" height="16"/>
+    </a>
+</h1>
+
+
+{% block breadcrumb_content %}
+  {{ h.build_nav('publisher_index', _('Datasets')) }}
+  {{ h.build_nav('publisher_read', c.group['title'], id=c.group['name'] ) }}
+  {{ h.build_nav('unpublished_edit', _('Manage inventory'), id=c.group['name'] ) }}
+{% endblock %}
+
+{% block primary_content_inner %}
+    {% if c.group['state'] != 'active' %}
+    <h3>State: {{c.group['state']}}</h3>
+    {% endif %}
+
+    <div class="boxed">
+      {% if c.description_formatted.strip() %}
+      <div class="notes">
+        {{c.description_formatted}}
+      </div>
+      {% endif %}
+
+      <h2>Inventory upload<span class="pull-right">{{h.render_datestamp(c.task.last_updated.isoformat(), format="%d/%m/%Y %H:%M")}}</span></h2>
+
+      <hr/>
+      <h4>Status: {{c.task.state}}</h4>
+
+      {% if c.task.state != 'Started' %}
+        <hr/>
+        <div>
+            <h4>Errors</h4>
+            {% if not c.task.error %}
+              <p>No errors.</p>
+            {% else %}
+              <p>
+                {% for error in c.task.error %}
+                  <ul>
+                      <li>{{error}}</li>
+                  </ul>
+                {% endfor %}
+              </p>
+            {% endif %}
+        </div>
+
+        <hr/>
+
+        <div>
+            <h4>Items processed</h4>
+            {% if not c.task.packages %}
+              <p>No items processed</p>
+            {% else %}
+            <table class="table table-bordered">
+              <thead>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Department</th>
+                <th>Publish Date</th>
+                <th>Release notes</th>
+                <th>Action</th>
+              </thead>
+              <tbody>
+                {% for pkg,grp,pub_date,release,action in h.inventory_status(c.task.packages) %}
+                  <tr>
+                    <td><a href="/dataset/{{pkg.name}}">{{pkg.title}}</a></td>
+                    <td title="{{pkg.notes}}">{{h.truncate(pkg.notes, length=40, whole_word=True)}}</td>
+                    <td>{{grp.title}}</td>
+                    <td>{{h.render_db_date(pub_date)}}</td>
+                    <td title="{{release}}">{{h.truncate(release, length=40, whole_word=True)}}</td>
+                    <td>{{action}}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            {% endif %}
+        </div>
+      {% endif %}
+    </div>
+{% endblock %}
+
+{% block optional_feed %}
+  <link rel="alternate" type="application/atom+xml" title="{{g.site_title}} - Datasets in group '{{c.group['title']}}'"
+    href="{{h.url(controller='feed', action='group', id=c.group['name'])}}" />
+{% endblock %}
+

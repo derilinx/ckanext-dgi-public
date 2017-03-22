@@ -1,0 +1,22 @@
+syntax: glob
+# generic
+*.pyc
+*~
+.DS_Store
+ckanext_dgu.egg-info/*
+sandbox/*
+pip-log.txt
+cmd.txt
+
+# pylons
+data/*
+
+# other
+build/*
+tmp/*
+selenium/*
+package/DEBIAN/control
+*.swp
+node_modules/*
+.bundle
+.idea

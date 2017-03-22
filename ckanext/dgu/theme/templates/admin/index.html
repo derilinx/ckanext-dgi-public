@@ -1,0 +1,50 @@
+{% extends "page.html" %}
+
+{% block title %}Administration Dashboard - {{super()}} {% endblock %}
+
+<h1>Administration Dashboard</h1>
+
+
+{% block breadcrumb_content %}
+    <li><a href="/data/system_dashboard">System Dashboard</a></li>
+    <li><a href="/ckan-admin">Sysadmins</a></li>
+{% endblock %}
+
+
+{% block primary_content_inner %}
+
+    <h1>System administrators</h1>
+
+    <table class="table table-condensed table-bordered" style="table-layout:fixed">
+        <tr>
+            <!-- <td>Pic</td> -->
+            <th>User</th>
+            <th>Email</th>
+            <th>Registered since</th>
+        </tr>
+
+        {% for user in c.sysadmins %}
+          {% with %}
+            {% set u = h.userobj_from_username(user) %}
+            <tr>
+                <!--! <td><img src="" style="display:none"/></td> -->
+                <td>{{h.linked_user(user)}}</td>
+                <td>
+                  {% if u and u.email %}
+                    <a href="mailto:{{u.email}}">{{u.email}}</a>
+                  {% endif %}
+                  {% if not u or not u.email %}
+                    System account
+                  {% endif %}
+                </td>
+                <td>{{h.render_datetime(u.created)}}</td>
+            </tr>
+          {% endwith %}
+        {% endfor %}
+
+    </table>
+
+    <span class="insert-comment-recent"></span>
+
+{% endblock %}
+
